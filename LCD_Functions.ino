@@ -17,6 +17,17 @@ void displayLCD(){
   }
 }
 
+void clearLCD()
+{
+  for(int x = 0; x < 16; x++)
+  {
+    for(int y = 0; y < 2; y++)
+    {
+      LCDData[y][x] = ' ';
+    }
+  }
+}
+
 void addToLCD(int cursorX, int cursorY, String text)
 {
   for(int i = cursorX; i < (cursorX + (int)text.length()) && i < 16; i++)

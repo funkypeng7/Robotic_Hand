@@ -29,6 +29,7 @@ Finger fingers[5];
 int currentFinger = 0;
 
 LiquidCrystal_I2C lcd(0x27,16,2);
+char empty[2][16] = {"                ", "                "};
 char LCDData[2][16] = {"                ", "                "};
 char prevLCDData[2][16] = {"                ", "                "};
 
@@ -37,7 +38,7 @@ int servoPulse[5] = {0,0,0,0,0};
 int actualServoPulse[5] = {0,0,0,0,0};
 
 void setup() {
-  bluetoothConnection = true;
+  bluetoothConnection = false;
   
   //LCD Setup
   lcd.init();
@@ -70,5 +71,7 @@ void loop() {
 //  addToLCD(0,0, "1: " + (String)fingers[0].minValue + " 2: " + (String)fingers[1].minValue + "        ");
   handleSerial();
   checkServoPulse();
+  CheckForInteraction();
+  ManageUI();
   displayLCD();
 }

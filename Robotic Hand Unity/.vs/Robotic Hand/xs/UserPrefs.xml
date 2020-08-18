@@ -1,0 +1,19 @@
+﻿<Properties StartupConfiguration="{E6158B56-D52B-6389-4BED-BE62B78C275E}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/SerialMonitor.cs">
+    <Files>
+      <File FileName="Assets/Scripts/SerialMonitor.cs" Line="447" Column="6" />
+      <File FileName="Assets/BluetoothAPI/Scripts/Demo.cs" />
+      <File FileName="Assets/BluetoothAPI/Scripts/manager.cs" />
+      <File FileName="Assets/BluetoothAPI/Scripts/ScanScene2.cs" />
+      <File FileName="Assets/BluetoothAPI/Scripts/ScanSceneManager.cs" />
+      <File FileName="Assets/Scripts/bluetoothManager.cs" Line="113" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="94baabec-a0b8-450d-968f-830b856000c1" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>

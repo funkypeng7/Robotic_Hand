@@ -7,7 +7,7 @@ void handleSerial()
   {
       while(BTSerial.available() > 0)
       {
-        AddToData(BTSerial.read());
+        AddToBuffer(BTSerial.read());
       }
   }
   else if(!bluetoothConnection && Serial.available() > 0)
@@ -39,8 +39,9 @@ void ActOnByte(byte incomingByte)
 
 }
 
-void AddToData(byte incomingByte)
+void AddToBuffer(byte incomingByte)
 {
+  Serial.println((int)incomingByte);
   if(incomingByte == '\0' || index == 2)
   {
     index = 0;
