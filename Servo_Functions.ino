@@ -1,12 +1,12 @@
-void MoveFinger(short value)
+void MoveFinger(short value, int finger)
 {
-  if(value < fingers[currentFinger].minValue)
-    value = fingers[currentFinger].minValue;
-  else if(value > fingers[currentFinger].maxValue)
-    value = fingers[currentFinger].maxValue;
+  if(value < fingers[finger].minValue)
+    value = fingers[finger].minValue;
+  else if(value > fingers[finger].maxValue)
+    value = fingers[finger].maxValue;
     
-  fingers[currentFinger].currentPosition = value;
-  servoPulse[currentFinger] = pulseWidth(value, currentFinger);
+  fingers[finger].currentPosition = value;
+  servoPulse[finger] = pulseWidth(value, finger);
 }
 
 int pulseWidth(int value, int finger)

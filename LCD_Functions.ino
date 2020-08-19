@@ -1,5 +1,9 @@
 // Change only characters that differ from the current display
 void displayLCD(){
+  if(beenHold)
+  {
+    LCDData[0][15] = '<';
+  }
   //Compare each character you want to display with its already displayed counterpart
   if(LCDData != prevLCDData)
   {  for(int y = 0; y < 2; y++)
@@ -12,6 +16,10 @@ void displayLCD(){
           if(LCDData[y][x] == '>')
           {
             lcd.write(0);
+          }
+          else if(LCDData[y][x] == '<')
+          {
+            lcd.write(1);
           }
           else
           {

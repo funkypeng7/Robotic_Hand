@@ -7,13 +7,20 @@
 #define outputB 4
 #define switchPin 5
 
+//UI
+int menu = 0;
+int page = 0;
+bool beenClick, beenHold;
+
 //Bluetooth Information
 AltSoftSerial BTSerial; 
-bool bluetoothConnection;
+
+//Connection
+int connectionType = 0;
+bool allowControl = true;
 
 // Encoder Data
 volatile int deltaEncoder;
-volatile bool dataChanged;
 bool beenPressed;
 unsigned long pressTime;
 
@@ -22,7 +29,7 @@ class Finger
   public:
   short currentPosition;
   short absMinPulse = 400, absMaxPulse = 2900;
-  short minValue= 0, maxValue = 244; 
+  short minValue= 0, maxValue = 240; 
 };
 
 Finger fingers[5];
@@ -47,10 +54,20 @@ const byte arrow[] = {
   B00000,
   B00000
 };
-
+const byte backArrow[] = {
+  B00000,
+  B11111,
+  B00001,
+  B00101,
+  B01001,
+  B11111,
+  B01000,
+  B00100
+};
 
 void setup() {
-  bluetoothConnection = false;
+  connectionType = 0;
+  menu = 1;
   
   //LCD Setup
   lcd.init();
@@ -58,6 +75,7 @@ void setup() {
   lcd.home();
   lcd.print("Hello World");
   lcd.createChar(0, arrow);
+  lcd.createChar(1, backArrow);
   
   //Servos
   servos.begin();
@@ -71,8 +89,7 @@ void setup() {
   //Set servos to default
   for(int i = 0; i < 5; i++)
   {
-    currentFinger = i;
-    MoveFinger(0);
+    MoveFinger(0, i);
   }
   checkServoPulse();
   

@@ -3,14 +3,14 @@ int index;
 
 void handleSerial()
 {
-  if(bluetoothConnection && analogRead(A6) > 500 && BTSerial.available() > 0)
+  if(connectionType == 1 && analogRead(A6) > 500 && BTSerial.available() > 0)
   {
       while(BTSerial.available() > 0)
       {
         AddToBuffer(BTSerial.read());
       }
   }
-  else if(!bluetoothConnection && Serial.available() > 0)
+  else if(connectionType == 0 && Serial.available() > 0)
   {
     byte incomingByte = Serial.read();
     if(incomingByte > 15)
@@ -21,22 +21,24 @@ void handleSerial()
       }
     }
     
-    ActOnByte(incomingByte);
+    ActOnByte(incomingByte, currentFinger);
     
   }
 }
 
-void ActOnByte(byte incomingByte)
+void ActOnByte(byte incomingByte, int finger)
 {
-  if((short)incomingByte < 15)
+  if(allowControl)
+  {
+    if((short)incomingByte < 15)
     {
       OptionsHandler((char)incomingByte);
     }
     else 
     {
-      MoveFinger((short)incomingByte - 15);
+      MoveFinger((short)incomingByte - 15, finger);
     }
-
+  }
 }
 
 void AddToBuffer(byte incomingByte)
@@ -48,7 +50,7 @@ void AddToBuffer(byte incomingByte)
     if(DataMatching && ( !BTSerial.available() > 0 || data[1] < 15))
     {
       Serial.println(data[1]);
-      ActOnByte(data[1]);
+      ActOnByte(data[1], currentFinger);
     }
   }
   else

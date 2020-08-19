@@ -1,53 +1,58 @@
-int menu = 0;
-int page = 0;
-
 unsigned long holdStartTime;
 bool hasBeenDown;
-bool beenClick, beenHold;
+volatile unsigned long lastInteraction;
 
-//Menu and Page Data
-const String menus[] = {"Main Menu", "Connection Type", "Manual Control"};
-
-//Menu 1
-bool stateToDecide = false;
-//Menu 2 - Manual Control
+//Menu 0
+const String menus[] = {"Info screen", "Connection", "Manual Control",};
+const short numOfMenus = 3;
+//Menu 2 - Connection
+const String typesOfConnections[] = {"Serial", "Bluetooth", "Controller"};
+int numOfConnections = 3;
+//Menu 3 - Manual Control
+const String fingerList[] = {"Finger 1", "Finger 2", "Finger 3", "Finger 4", "Finger 5"};
 int selectedFinger;
 
 void CheckForInteraction()
 {
-//  if(digitalRead(5))
-//  {
-//    fingers[2].currentPosition = 240;
-//    servoPulse[2] = pulseWidth(240, currentFinger);
-//  }
-//  else
-//  {
-//    fingers[2].currentPosition = 0;
-//    servoPulse[2] = pulseWidth(0, currentFinger);
-//  }
-  
   beenClick = false;
   beenHold = false;
   
   if(!digitalRead(5) && !hasBeenDown)
   {
+    lastInteraction = millis();
     holdStartTime = millis();
     hasBeenDown = true;
   }
 
+  if(!digitalRead(5) && millis() - holdStartTime > 500)
+  {
+    lastInteraction = millis();
+     beenHold = true;
+  }
+  
   if(digitalRead(5) && hasBeenDown)
   {
+    lastInteraction = millis();
     hasBeenDown = false;
     if(millis() - holdStartTime > 500)
     {
-      beenHold = true;
-      Serial.println("Hold");
+      moveToMenu(0);
     }
     else
     {
       beenClick = true;
       Serial.println("Click");
     }
+    
+  }
+  CheckTimeout();
+  
+}
+void CheckTimeout()
+{
+  if(menu != 1 && millis() - lastInteraction > 20000)
+  {
+    moveToMenu(1);
   }
 }
 
@@ -57,80 +62,99 @@ void ManageUI()
   {
     if(beenClick)
     {
-      beenClick = false;
-      menu = 1;
-      page = 0;
-      stateToDecide = bluetoothConnection;
-      ManageUI();
+      moveToMenu(page + 1);
       return;
     }
-    clearLCD();
-    addToLCD(0,0, "1: " + (String)fingers[0].currentPosition + " 2: " + (String)fingers[1].currentPosition + " 3: " + (String)fingers[2].currentPosition);
-    addToLCD(0,1, "4: " + (String)fingers[3].currentPosition + " 5: " + (String)fingers[4].currentPosition);
-    if(bluetoothConnection)
-      addToLCD(15,1, "B");
-    else
-      addToLCD(15,1, "S");
+    DisplayList(menus, numOfMenus);
   }
-  else if(menu == 1)
-  {
-    
-  }
-
-
-
-
-
-
-
-
-  
   else if(menu == 1)
   {
     if(beenClick)
     {
-      beenClick = false;
-      bluetoothConnection = stateToDecide;
-      menu = 2;
-      page = 0;
-      ManageUI();
+      moveToMenu(0);
       return;
     }
-    if(beenHold)
-    {
-      beenHold = false;
-      bluetoothConnection = stateToDecide;
-      menu = 0;
-      page = 0;
-      ManageUI();
-      return;
-    }
-    for(int i = 0; i < abs(deltaEncoder); i++)
-    {
-      stateToDecide = !stateToDecide;
-    }
-    deltaEncoder = 0;
-
     clearLCD();
-    if(stateToDecide)
+    addToLCD(0,0, "1:" + (String)fingers[0].currentPosition + " 2:" + (String)fingers[1].currentPosition + " 3:" + (String)fingers[2].currentPosition);
+    addToLCD(0,1, "4:" + (String)fingers[3].currentPosition + " 5:" + (String)fingers[4].currentPosition);
+    
+    if(connectionType == 0)
+      addToLCD(15,1, "S");
+    else if(connectionType == 1)
+      addToLCD(15,1, "B");
+    else if(connectionType == 2)
+      addToLCD(15,1, "C");
+  }
+  else if(menu == 2)
+  {
+    if(beenClick)
     {
-      addToLCD(0,0, "Bluetooth");
+      connectionType = page;
+      moveToMenu(0);
+      return;
     }
+    DisplayList(typesOfConnections, numOfConnections);
+  }
+  else if(menu == 3)
+  {
+    if((beenClick) && page < 5)
+    {
+      page += 5;
+      beenClick = false;
+    }
+    if(page < 5)
+      DisplayList(fingerList, 5);
     else
     {
-      addToLCD(0,0, "Serial");
+      if(beenClick)
+      {
+        moveToMenu(0);
+        return;
+      }
+      if(deltaEncoder != 0)
+      {
+        int newPosition = fingers[page - 5].currentPosition;
+        newPosition += deltaEncoder * 3 - deltaEncoder/abs(deltaEncoder);
+        if(newPosition < fingers[page - 5].minValue)
+          newPosition = fingers[page - 5].minValue;
+        if(newPosition < fingers[page - 5].maxValue)
+          newPosition < fingers[page - 5].maxValue;
+        MoveFinger(newPosition, page - 5);
+      }
+      clearLCD();
+      addToLCD(0,0, "Finger " + (String)(page - 4) + ": " + (String)(fingers[page - 5].currentPosition));
     }
-    
   }
-
-  
   deltaEncoder = 0;
 }
 
-void moveToMenu(int selectedMenu)
+void moveToMenu(int _menu)
 {
   beenClick = false;
   beenHold = false;
+  deltaEncoder = 0;
+  menu = _menu;
+  page = 0;
+  ManageUI();
+}
+
+void DisplayList(String items[], int numOfItems)
+{
+  if(deltaEncoder != 0)
+    {
+      page += deltaEncoder;
+      if(page < 0)
+        page = 0;
+      if(page >= numOfItems)
+        page = numOfItems - 1;
+      deltaEncoder = 0;
+    }
+    clearLCD();
+    addToLCD(0,0, ">" + items[page]);
+    if(page + 1 < numOfItems)
+    {
+      addToLCD(0,1," " + items[page + 1]);
+    } 
 }
 
 void isr ()  {
@@ -146,8 +170,8 @@ void isr ()  {
     else {
       deltaEncoder++ ; 
     }
-    dataChanged = true;
   }
+  lastInteraction = millis();
   // Keep track of when we were here last (no more than every 5ms)
   lastInterruptTime = interruptTime;
 }
