@@ -6,11 +6,26 @@ bool hasBeenDown;
 bool beenClick, beenHold;
 
 //Menu and Page Data
-//Menu 0 
+const String menus[] = {"Main Menu", "Connection Type", "Manual Control"};
+
 //Menu 1
 bool stateToDecide = false;
+//Menu 2 - Manual Control
+int selectedFinger;
+
 void CheckForInteraction()
 {
+//  if(digitalRead(5))
+//  {
+//    fingers[2].currentPosition = 240;
+//    servoPulse[2] = pulseWidth(240, currentFinger);
+//  }
+//  else
+//  {
+//    fingers[2].currentPosition = 0;
+//    servoPulse[2] = pulseWidth(0, currentFinger);
+//  }
+  
   beenClick = false;
   beenHold = false;
   
@@ -40,10 +55,11 @@ void ManageUI()
 {
   if(menu == 0)
   {
-    if(beenHold)
+    if(beenClick)
     {
-      beenHold = false;
+      beenClick = false;
       menu = 1;
+      page = 0;
       stateToDecide = bluetoothConnection;
       ManageUI();
       return;
@@ -58,12 +74,35 @@ void ManageUI()
   }
   else if(menu == 1)
   {
+    
+  }
+
+
+
+
+
+
+
+
+  
+  else if(menu == 1)
+  {
     if(beenClick)
     {
       beenClick = false;
       bluetoothConnection = stateToDecide;
-      menu = 0; 
-      ManageUI;
+      menu = 2;
+      page = 0;
+      ManageUI();
+      return;
+    }
+    if(beenHold)
+    {
+      beenHold = false;
+      bluetoothConnection = stateToDecide;
+      menu = 0;
+      page = 0;
+      ManageUI();
       return;
     }
     for(int i = 0; i < abs(deltaEncoder); i++)
@@ -86,6 +125,12 @@ void ManageUI()
 
   
   deltaEncoder = 0;
+}
+
+void moveToMenu(int selectedMenu)
+{
+  beenClick = false;
+  beenHold = false;
 }
 
 void isr ()  {

@@ -37,6 +37,18 @@ Adafruit_PWMServoDriver servos = Adafruit_PWMServoDriver();
 int servoPulse[5] = {0,0,0,0,0};
 int actualServoPulse[5] = {0,0,0,0,0};
 
+const byte arrow[] = {
+  B00000,
+  B00100,
+  B00010,
+  B11111,
+  B00010,
+  B00100,
+  B00000,
+  B00000
+};
+
+
 void setup() {
   bluetoothConnection = false;
   
@@ -45,7 +57,8 @@ void setup() {
   lcd.backlight();
   lcd.home();
   lcd.print("Hello World");
-
+  lcd.createChar(0, arrow);
+  
   //Servos
   servos.begin();
   servos.setPWMFreq(50);

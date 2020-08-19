@@ -9,7 +9,14 @@ void displayLCD(){
         if(LCDData != prevLCDData)
         {
           lcd.setCursor(x,y);
-          lcd.print(LCDData[y][x]);
+          if(LCDData[y][x] == '>')
+          {
+            lcd.write(0);
+          }
+          else
+          {
+            lcd.print(LCDData[y][x]);
+          }
           prevLCDData[y][x] = LCDData[y][x];
         }
       }
