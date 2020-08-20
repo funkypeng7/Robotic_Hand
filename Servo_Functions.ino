@@ -12,7 +12,7 @@ void MoveFinger(short value, int finger)
 int pulseWidth(int value, int finger)
 {
   int pulse_wide, analog_value;
-  pulse_wide = map(value, 0, 244, fingers[finger].absMinPulse, fingers[finger].absMaxPulse);
+  pulse_wide = map(value, 0, 244, fingers[finger].minPulse, fingers[finger].maxPulse);
   analog_value = int(float(pulse_wide) / 1000000 * 50 * 4096);
   return analog_value;
 }

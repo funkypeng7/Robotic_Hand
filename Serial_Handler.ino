@@ -43,13 +43,11 @@ void ActOnByte(byte incomingByte, int finger)
 
 void AddToBuffer(byte incomingByte)
 {
-  Serial.println((int)incomingByte);
   if(incomingByte == '\0' || index == 2)
   {
     index = 0;
     if(DataMatching && ( !BTSerial.available() > 0 || data[1] < 15))
     {
-      Serial.println(data[1]);
       ActOnByte(data[1], currentFinger);
     }
   }

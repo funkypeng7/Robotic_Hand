@@ -11,6 +11,7 @@
 int menu = 0;
 int page = 0;
 bool beenClick, beenHold;
+volatile unsigned long lastInteraction;
 
 //Bluetooth Information
 AltSoftSerial BTSerial; 
@@ -28,7 +29,7 @@ class Finger
 {
   public:
   short currentPosition;
-  short absMinPulse = 400, absMaxPulse = 2900;
+  short minPulse = 400, maxPulse = 2900;
   short minValue= 0, maxValue = 240; 
 };
 
@@ -64,6 +65,46 @@ const byte backArrow[] = {
   B01000,
   B00100
 };
+const byte lowerBounds[] = {
+  B10000,
+  B10000,
+  B10000,
+  B11111,
+  B10000,
+  B10000,
+  B10000,
+  B00000
+};
+const byte upperBounds[] = {
+  B00001,
+  B00001,
+  B00001,
+  B11111,
+  B00001,
+  B00001,
+  B00001,
+  B00000
+};
+const byte lowerPulseBounds[] = {
+  B10000,
+  B10000,
+  B10101,
+  B11010,
+  B10101,
+  B10000,
+  B10000,
+  B00000
+};
+const byte upperPulseBounds[] = {
+  B00001,
+  B00001,
+  B10101,
+  B01011,
+  B10101,
+  B00001,
+  B00001,
+  B00000
+};
 
 void setup() {
   connectionType = 0;
@@ -74,8 +115,12 @@ void setup() {
   lcd.backlight();
   lcd.home();
   lcd.print("Hello World");
-  lcd.createChar(0, arrow);
-  lcd.createChar(1, backArrow);
+  lcd.createChar(1, arrow);
+  lcd.createChar(2, backArrow);
+  lcd.createChar(3, lowerBounds);
+  lcd.createChar(4, upperBounds);
+  lcd.createChar(5, lowerPulseBounds);
+  lcd.createChar(6, upperPulseBounds);
   
   //Servos
   servos.begin();
@@ -96,6 +141,7 @@ void setup() {
   //Encoder Setup
     attachInterrupt(digitalPinToInterrupt(outputA), isr, LOW);
 }
+
 void loop() {
   // put your main code here, to run repeatedly:
 //  addToLCD(0,0, "1: " + (String)fingers[0].minValue + " 2: " + (String)fingers[1].minValue + "        ");

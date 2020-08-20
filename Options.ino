@@ -21,19 +21,19 @@ void OptionsHandler(char value)
           fingers[currentFinger].maxValue = 244;
           break;
         case 9:
-          fingers[currentFinger].absMaxPulse += 10;
+          fingers[currentFinger].maxPulse += 10;
           MoveFinger(255, currentFinger);
           break;
         case 10:
-          fingers[currentFinger].absMaxPulse -= 10;
+          fingers[currentFinger].maxPulse -= 10;
           MoveFinger(255, currentFinger);
           break;
         case 11:
-          fingers[currentFinger].absMinPulse += 10;
+          fingers[currentFinger].minPulse += 10;
           MoveFinger(0, currentFinger);
           break;
         case 12:
-          fingers[currentFinger].absMinPulse -= 10;
+          fingers[currentFinger].minPulse -= 10;
           MoveFinger(0, currentFinger);
           break;
       }

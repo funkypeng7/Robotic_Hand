@@ -1,16 +1,24 @@
 unsigned long holdStartTime;
 bool hasBeenDown;
-volatile unsigned long lastInteraction;
+
 
 //Menu 0
-const String menus[] = {"Info screen", "Connection", "Manual Control",};
-const short numOfMenus = 3;
+const String menus[] = {"Info screen", "Connection Type", "Manual Control", "Calibration", "Finger Data"};
+const short numOfMenus = 5;
 //Menu 2 - Connection
 const String typesOfConnections[] = {"Serial", "Bluetooth", "Controller"};
-int numOfConnections = 3;
+const short numOfConnections = 3;
 //Menu 3 - Manual Control
 const String fingerList[] = {"Finger 1", "Finger 2", "Finger 3", "Finger 4", "Finger 5"};
 int selectedFinger;
+//Menu 4 - callibration
+const String callibrationOptions[] = {"Range", "Pulses"};
+const short numOfCOptions = 2;
+bool adjustPulse, setMax;
+//Menu 5
+String debugList[] = {"Finger 1 - ", "Range", "Pulse", "Finger 2 - ", "Range", "Pulse", "Finger 3 - ", "Range", "Pulse", "Finger 4 - ", "Range", "Pulse", "Finger 5 - ", "Range", "Pulse",};
+
+
 
 void CheckForInteraction()
 {
@@ -41,7 +49,6 @@ void CheckForInteraction()
     else
     {
       beenClick = true;
-      Serial.println("Click");
     }
     
   }
@@ -65,7 +72,7 @@ void ManageUI()
       moveToMenu(page + 1);
       return;
     }
-    DisplayList(menus, numOfMenus);
+    DisplayList(menus, numOfMenus, 0);
   }
   else if(menu == 1)
   {
@@ -90,10 +97,10 @@ void ManageUI()
     if(beenClick)
     {
       connectionType = page;
-      moveToMenu(0);
+      moveToMenu(1);
       return;
     }
-    DisplayList(typesOfConnections, numOfConnections);
+    DisplayList(typesOfConnections, numOfConnections, 0);
   }
   else if(menu == 3)
   {
@@ -101,9 +108,10 @@ void ManageUI()
     {
       page += 5;
       beenClick = false;
+      allowControl = false;
     }
     if(page < 5)
-      DisplayList(fingerList, 5);
+      DisplayList(fingerList, 5, 0);
     else
     {
       if(beenClick)
@@ -118,12 +126,154 @@ void ManageUI()
         if(newPosition < fingers[page - 5].minValue)
           newPosition = fingers[page - 5].minValue;
         if(newPosition < fingers[page - 5].maxValue)
-          newPosition < fingers[page - 5].maxValue;
+          newPosition = fingers[page - 5].maxValue;
         MoveFinger(newPosition, page - 5);
       }
       clearLCD();
       addToLCD(0,0, "Finger " + (String)(page - 4) + ": " + (String)(fingers[page - 5].currentPosition));
     }
+  }
+  else if(menu == 4)
+  {
+    if(beenClick && page < 2)
+    {
+      adjustPulse = page;
+      page = 2;
+      beenClick = false;
+      allowControl = false;
+    }
+    if(page < 2)
+      DisplayList(callibrationOptions, numOfCOptions, 0);
+    if(page >= 2)
+    {
+      if(beenClick && page < 7)
+      {
+        page += 5;
+        setMax = false;
+        beenClick = false;
+        allowControl = false;
+      }
+      if(page < 7)
+        DisplayList(fingerList, 5, 2);
+      else
+      {
+        if(beenClick)
+        {
+          setMax = !setMax;
+        }
+        if(adjustPulse)
+        {
+          if(deltaEncoder != 0)
+          {
+            int newPulse = fingers[page - 7].minPulse;
+            if(setMax)
+              newPulse = fingers[page - 7].maxPulse;
+
+            newPulse += deltaEncoder;
+            if(setMax)
+            {
+              if(newPulse < fingers[page - 7].minPulse + 100)
+                newPulse = fingers[page - 7].minPulse + 100;
+            }
+            else
+            {
+              if(newPulse > fingers[page - 7].maxPulse - 100)
+                newPulse = fingers[page - 7].maxPulse - 100;
+              if(newPulse < 0)
+                newPulse = 0;
+            }
+            if(setMax)
+            {
+              fingers[page - 7].maxPulse = newPulse;
+              MoveFinger(255, page - 7);
+            }
+            else
+            {
+              fingers[page - 7].minPulse = newPulse;
+              MoveFinger(0, page - 7);
+            }
+          }
+          if(setMax)
+          {
+            clearLCD();
+            addToLCD(0,0, "Finger " + (String)(page - 6) + " - Pulse");
+            addToLCD(0,1, " -" + (String)fingers[page -7].minPulse + " \1+" + (String)fingers[page - 7].maxPulse);
+          }
+          else
+          {
+            clearLCD();
+            addToLCD(0,0, "Finger " + (String)(page - 6) + " - Pulse");
+            addToLCD(0,1, "\1-" + (String)fingers[page -7].minPulse + "  +" + (String)fingers[page - 7].maxPulse);
+          }
+        }
+        else
+        {
+          if(deltaEncoder != 0)
+          {
+            int newRange = fingers[page - 7].minValue;
+            if(setMax)
+              newRange = fingers[page - 7].maxValue;
+
+            newRange += deltaEncoder;
+            if(setMax)
+            {
+              if(newRange < fingers[page - 7].minValue)
+                newRange = fingers[page - 7].maxValue;
+            }
+            else
+            {
+              if(newRange > fingers[page - 7].minValue)
+                newRange = fingers[page - 7].maxValue;
+              if(newRange < 0)
+                newRange = 0;
+            }
+            if(setMax)
+            {
+              fingers[page - 7].maxValue = newRange;
+              MoveFinger(255, page - 7);
+            }
+            else
+            {
+              fingers[page - 7].minValue = newRange;
+              MoveFinger(0, page - 7);
+            }
+          }
+          if(setMax)
+          {
+            clearLCD();
+            addToLCD(0,0, "Finger " + (String)(page - 6) + " - Range");
+            addToLCD(0,1, " -" + (String)fingers[page -7].minValue + " \1+" + (String)fingers[page - 7].maxValue);
+          }
+          else
+          {
+            clearLCD();
+            addToLCD(0,0, "Finger " + (String)(page - 6) + " - Range");
+            addToLCD(0,1, "\1-" + (String)fingers[page -7].minValue + "  +" + (String)fingers[page - 7].maxValue);
+          }
+        }
+        
+        
+      }
+    }
+  }
+  else if(menu == 5)
+  {
+    if(beenClick)
+    {
+      moveToMenu(0);
+      return;
+    }
+    for(int finger = 0; finger < 5; finger++)
+    {
+      debugList[finger * 3] = "Finger " + (String)(finger + 1) + " - " + (String)fingers[finger].currentPosition;
+      debugList[finger * 3 + 1] =  " \3" +  (String)fingers[finger].minValue + " - " + (String)fingers[finger].maxValue + "\4";
+      debugList[finger * 3 + 2] =  " \5" +  (String)fingers[finger].minPulse + " - " + (String)fingers[finger].maxPulse + "\6";
+    }
+    DisplayList(debugList, 15, 0);
+  }
+  else
+  {
+    moveToMenu(0);
   }
   deltaEncoder = 0;
 }
@@ -135,29 +285,31 @@ void moveToMenu(int _menu)
   deltaEncoder = 0;
   menu = _menu;
   page = 0;
+  allowControl = true;
   ManageUI();
 }
 
-void DisplayList(String items[], int numOfItems)
+void DisplayList(String items[], short numOfItems, short pageOffset)
 {
   if(deltaEncoder != 0)
     {
       page += deltaEncoder;
-      if(page < 0)
-        page = 0;
-      if(page >= numOfItems)
-        page = numOfItems - 1;
+      if(page - pageOffset < 0)
+        page = pageOffset;
+      if(page - pageOffset >= numOfItems)
+        page = numOfItems - 1 + pageOffset;
       deltaEncoder = 0;
     }
     clearLCD();
-    addToLCD(0,0, ">" + items[page]);
-    if(page + 1 < numOfItems)
+    addToLCD(0,0, "\1" + items[page - pageOffset]);
+    if(page - pageOffset + 1 < numOfItems)
     {
-      addToLCD(0,1," " + items[page + 1]);
+      addToLCD(0,1," " + items[page - pageOffset + 1]);
     } 
 }
 
-void isr ()  {
+void isr ()  
+{
   static unsigned long lastInterruptTime = 0;
   unsigned long interruptTime = millis();
   
