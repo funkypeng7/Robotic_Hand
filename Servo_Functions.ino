@@ -4,8 +4,12 @@ void MoveFinger(short value, int finger)
     value = fingers[finger].minValue;
   else if(value > fingers[finger].maxValue)
     value = fingers[finger].maxValue;
-    
+
   fingers[finger].currentPosition = value;
+  if(fingers[finger].reverse)
+  {
+    value = fingers[finger].maxValue - value;
+  }
   servoPulse[finger] = pulseWidth(value, finger);
 }
 

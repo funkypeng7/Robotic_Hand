@@ -16,7 +16,7 @@ const String callibrationOptions[] = {"Range", "Pulses"};
 const short numOfCOptions = 2;
 bool adjustPulse, setMax;
 //Menu 5
-String debugList[] = {"Finger 1 - ", "Range", "Pulse", "Finger 2 - ", "Range", "Pulse", "Finger 3 - ", "Range", "Pulse", "Finger 4 - ", "Range", "Pulse", "Finger 5 - ", "Range", "Pulse",};
+//String debugList[] = {"Finger 1 - ", "Range", "Pulse", "Finger 2 - ", "Range", "Pulse", "Finger 3 - ", "Range", "Pulse", "Finger 4 - ", "Range", "Pulse", "Finger 5 - ", "Range", "Pulse",};
 
 
 
@@ -122,10 +122,10 @@ void ManageUI()
       if(deltaEncoder != 0)
       {
         int newPosition = fingers[page - 5].currentPosition;
-        newPosition += deltaEncoder * 3 - deltaEncoder/abs(deltaEncoder);
+        newPosition += deltaEncoder * 3 - 2 * deltaEncoder/abs(deltaEncoder);
         if(newPosition < fingers[page - 5].minValue)
           newPosition = fingers[page - 5].minValue;
-        if(newPosition < fingers[page - 5].maxValue)
+        if(newPosition > fingers[page - 5].maxValue)
           newPosition = fingers[page - 5].maxValue;
         MoveFinger(newPosition, page - 5);
       }
@@ -251,8 +251,6 @@ void ManageUI()
             addToLCD(0,1, "\1-" + (String)fingers[page -7].minValue + "  +" + (String)fingers[page - 7].maxValue);
           }
         }
-        
-        
       }
     }
   }
@@ -263,19 +261,49 @@ void ManageUI()
       moveToMenu(0);
       return;
     }
-    for(int finger = 0; finger < 5; finger++)
+    if(deltaEncoder != 0)
     {
-      debugList[finger * 3] = "Finger " + (String)(finger + 1) + " - " + (String)fingers[finger].currentPosition;
-      debugList[finger * 3 + 1] =  " \3" +  (String)fingers[finger].minValue + " - " + (String)fingers[finger].maxValue + "\4";
-      debugList[finger * 3 + 2] =  " \5" +  (String)fingers[finger].minPulse + " - " + (String)fingers[finger].maxPulse + "\6";
+      page += deltaEncoder;
+      if(page < 0)
+        page = 0;
+      if(page > 18)
+        page = 18;
     }
-    DisplayList(debugList, 15, 0);
+    clearLCD();
+    addToLCD(0,0, getData(page));
+    addToLCD(0,1, getData(page + 1));
   }
   else
   {
     moveToMenu(0);
   }
   deltaEncoder = 0;
+}
+
+String getData(int i)
+{
+  short finger = floor(i/4);
+  switch(i % 4)
+  {
+    case 0:
+      return "Finger " + (String)(finger + 1) + " - " + (String)fingers[finger].currentPosition;
+      break;
+    case 1:
+      if(fingers[finger].reverse)
+        return F(" Direction = R");
+      else
+        return  F(" Direction = N");
+      break;
+    case 2: 
+      return " \3" + (String)fingers[finger].minValue + " - " + (String)fingers[finger].maxValue + "\4";
+      break;
+    case 3: 
+      return " \5" + (String)fingers[finger].minPulse + " - " + (String)fingers[finger].maxPulse + "\6";
+      break;
+  }
+  
+    
+  
 }
 
 void moveToMenu(int _menu)
@@ -286,26 +314,34 @@ void moveToMenu(int _menu)
   menu = _menu;
   page = 0;
   allowControl = true;
+
   ManageUI();
 }
 
 void DisplayList(String items[], short numOfItems, short pageOffset)
 {
   if(deltaEncoder != 0)
-    {
-      page += deltaEncoder;
-      if(page - pageOffset < 0)
-        page = pageOffset;
-      if(page - pageOffset >= numOfItems)
-        page = numOfItems - 1 + pageOffset;
-      deltaEncoder = 0;
-    }
+  {
+    page += deltaEncoder;
+    if(page - pageOffset < 0)
+      page = pageOffset;
+    if(page - pageOffset >= numOfItems)
+      page = numOfItems - 1 + pageOffset;
+    deltaEncoder = 0;
+  }
+  clearLCD();
+  addToLCD(0,0, "\1" + items[page - pageOffset]);
+  if(page - pageOffset + 1 < numOfItems)
+  {
+    addToLCD(0,1," " + items[page - pageOffset + 1]);
+  } 
+  if(page - pageOffset + 1 == numOfItems)
+  {
     clearLCD();
-    addToLCD(0,0, "\1" + items[page - pageOffset]);
-    if(page - pageOffset + 1 < numOfItems)
-    {
-      addToLCD(0,1," " + items[page - pageOffset + 1]);
-    } 
+    addToLCD(0,0, " " + items[page - pageOffset - 1]);
+    addToLCD(0,1, "\1" + items[page - pageOffset]);
+  }
+
 }
 
 void isr ()  

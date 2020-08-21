@@ -28,9 +28,10 @@ unsigned long pressTime;
 class Finger
 {
   public:
+  bool reverse;
   short currentPosition;
   short minPulse = 400, maxPulse = 2900;
-  short minValue= 0, maxValue = 240; 
+  short minValue= 10, maxValue = 240; 
 };
 
 Finger fingers[5];
@@ -109,6 +110,8 @@ const byte upperPulseBounds[] = {
 void setup() {
   connectionType = 0;
   menu = 1;
+
+  fingers[3].reverse = true;
   
   //LCD Setup
   lcd.init();
