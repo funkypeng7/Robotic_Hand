@@ -2,16 +2,18 @@
 #include <LiquidCrystal_I2C.h>
 #include <Adafruit_PWMServoDriver.h>
 #include <AltSoftSerial.h>
+#include <EEPROM.h>
 
 #define outputA 2
 #define outputB 4
 #define switchPin 5
 
 //UI
-int menu = 0;
-int page = 0;
+byte menu = 0;
+byte page = 0;
 bool beenClick, beenHold;
 volatile unsigned long lastInteraction;
+bool lockArduino;
 
 //Bluetooth Information
 AltSoftSerial BTSerial; 
@@ -30,8 +32,9 @@ class Finger
   public:
   bool reverse;
   short currentPosition;
+  short holdPosition = 30;
   short minPulse = 400, maxPulse = 2900;
-  short minValue= 10, maxValue = 240; 
+  byte minValue= 10, maxValue = 240; 
 };
 
 Finger fingers[5];
@@ -108,16 +111,21 @@ const byte upperPulseBounds[] = {
 };
 
 void setup() {
+  
   connectionType = 0;
   menu = 1;
-
-  fingers[3].reverse = true;
   
+  
+
+  //Retrieve from EEPROM
+  retreiveFromEEPROM();
+  
+  fingers[4].reverse = true;
   //LCD Setup
   lcd.init();
   lcd.backlight();
   lcd.home();
-  lcd.print("Hello World");
+  lcd.print("Check Encoder");
   lcd.createChar(1, arrow);
   lcd.createChar(2, backArrow);
   lcd.createChar(3, lowerBounds);
@@ -137,7 +145,7 @@ void setup() {
   //Set servos to default
   for(int i = 0; i < 5; i++)
   {
-    MoveFinger(0, i);
+    MoveFinger(255, i);
   }
   checkServoPulse();
   
@@ -146,6 +154,7 @@ void setup() {
 }
 
 void loop() {
+
   // put your main code here, to run repeatedly:
 //  addToLCD(0,0, "1: " + (String)fingers[0].minValue + " 2: " + (String)fingers[1].minValue + "        ");
   handleSerial();

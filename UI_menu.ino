@@ -12,19 +12,27 @@ const short numOfConnections = 3;
 const String fingerList[] = {"Finger 1", "Finger 2", "Finger 3", "Finger 4", "Finger 5"};
 int selectedFinger;
 //Menu 4 - callibration
-const String callibrationOptions[] = {"Range", "Pulses"};
-const short numOfCOptions = 2;
-bool adjustPulse, setMax;
+const String callibrationOptions[] = {"Direction", "Range", "Pulses", "Stop Position",  "Save Settings", "Factory Reset"};
+const short numOfCOptions = 6;
+int setting;
+bool setMax;
 //Menu 5
 //String debugList[] = {"Finger 1 - ", "Range", "Pulse", "Finger 2 - ", "Range", "Pulse", "Finger 3 - ", "Range", "Pulse", "Finger 4 - ", "Range", "Pulse", "Finger 5 - ", "Range", "Pulse",};
-
+//Menu 6
+const String confirmMenu[] {"Back", "I Want To Reset"};
+byte numOfConfirm = 2;
 
 
 void CheckForInteraction()
 {
+  Serial.println(page);
+
   beenClick = false;
   beenHold = false;
   
+  if(lockArduino)
+    return;
+    
   if(!digitalRead(5) && !hasBeenDown)
   {
     lastInteraction = millis();
@@ -49,6 +57,7 @@ void CheckForInteraction()
     else
     {
       beenClick = true;
+      Serial.println("click");
     }
     
   }
@@ -135,122 +144,52 @@ void ManageUI()
   }
   else if(menu == 4)
   {
-    if(beenClick && page < 2)
+    if(beenClick && page < numOfCOptions)
     {
-      adjustPulse = page;
-      page = 2;
-      beenClick = false;
-      allowControl = false;
+      if(page == 4)
+        page = 30;
+      else if(page == 5)
+      {
+        moveToMenu(6);
+      }
+      else
+      {
+        setting = page;
+        page = numOfCOptions;
+        beenClick = false;
+        allowControl = false;
+      }
     }
-    if(page < 2)
+    if(page < numOfCOptions)
       DisplayList(callibrationOptions, numOfCOptions, 0);
-    if(page >= 2)
+    if(page >= numOfCOptions)
     {
-      if(beenClick && page < 7)
+      if(beenClick && page < numOfCOptions + 5)
       {
         page += 5;
         setMax = false;
         beenClick = false;
         allowControl = false;
       }
-      if(page < 7)
-        DisplayList(fingerList, 5, 2);
+      if(page < numOfCOptions + 5)
+        DisplayList(fingerList, 5, numOfCOptions);
+      else if(page == 30)
+      {
+        saveToEEPROM();
+        clearLCD();
+        addToLCD(0,0, "Save Successful");
+        page = 31;
+        return;
+      }
+      else if(page == 31)
+      {
+        clearLCD();
+        addToLCD(0,0, "Save Successful");
+        addToLCD(0,1, "Hold To Exit");
+      }
       else
       {
-        if(beenClick)
-        {
-          setMax = !setMax;
-        }
-        if(adjustPulse)
-        {
-          if(deltaEncoder != 0)
-          {
-            int newPulse = fingers[page - 7].minPulse;
-            if(setMax)
-              newPulse = fingers[page - 7].maxPulse;
-
-            newPulse += deltaEncoder;
-            if(setMax)
-            {
-              if(newPulse < fingers[page - 7].minPulse + 100)
-                newPulse = fingers[page - 7].minPulse + 100;
-            }
-            else
-            {
-              if(newPulse > fingers[page - 7].maxPulse - 100)
-                newPulse = fingers[page - 7].maxPulse - 100;
-              if(newPulse < 0)
-                newPulse = 0;
-            }
-            if(setMax)
-            {
-              fingers[page - 7].maxPulse = newPulse;
-              MoveFinger(255, page - 7);
-            }
-            else
-            {
-              fingers[page - 7].minPulse = newPulse;
-              MoveFinger(0, page - 7);
-            }
-          }
-          if(setMax)
-          {
-            clearLCD();
-            addToLCD(0,0, "Finger " + (String)(page - 6) + " - Pulse");
-            addToLCD(0,1, " -" + (String)fingers[page -7].minPulse + " \1+" + (String)fingers[page - 7].maxPulse);
-          }
-          else
-          {
-            clearLCD();
-            addToLCD(0,0, "Finger " + (String)(page - 6) + " - Pulse");
-            addToLCD(0,1, "\1-" + (String)fingers[page -7].minPulse + "  +" + (String)fingers[page - 7].maxPulse);
-          }
-        }
-        else
-        {
-          if(deltaEncoder != 0)
-          {
-            int newRange = fingers[page - 7].minValue;
-            if(setMax)
-              newRange = fingers[page - 7].maxValue;
-
-            newRange += deltaEncoder;
-            if(setMax)
-            {
-              if(newRange < fingers[page - 7].minValue)
-                newRange = fingers[page - 7].maxValue;
-            }
-            else
-            {
-              if(newRange > fingers[page - 7].minValue)
-                newRange = fingers[page - 7].maxValue;
-              if(newRange < 0)
-                newRange = 0;
-            }
-            if(setMax)
-            {
-              fingers[page - 7].maxValue = newRange;
-              MoveFinger(255, page - 7);
-            }
-            else
-            {
-              fingers[page - 7].minValue = newRange;
-              MoveFinger(0, page - 7);
-            }
-          }
-          if(setMax)
-          {
-            clearLCD();
-            addToLCD(0,0, "Finger " + (String)(page - 6) + " - Range");
-            addToLCD(0,1, " -" + (String)fingers[page -7].minValue + " \1+" + (String)fingers[page - 7].maxValue);
-          }
-          else
-          {
-            clearLCD();
-            addToLCD(0,0, "Finger " + (String)(page - 6) + " - Range");
-            addToLCD(0,1, "\1-" + (String)fingers[page -7].minValue + "  +" + (String)fingers[page - 7].maxValue);
-          }
-        }
+        ChangeSetting(setting);
       }
     }
   }
@@ -272,6 +211,30 @@ void ManageUI()
     clearLCD();
     addToLCD(0,0, getData(page));
     addToLCD(0,1, getData(page + 1));
+  }
+  else if(menu == 6)
+  {
+    if(beenClick)
+    {
+      if(page == 0)
+        moveToMenu(0);
+      else
+      {
+        EEPROM.write(0,1);
+        page = 3;
+      }
+    }
+    
+    if(page == 3)
+    {
+      clearLCD();
+      addToLCD(0,0,"Please Reset Arduino");
+      lockArduino = true;
+    }
+    else
+    {
+      DisplayList(confirmMenu, numOfConfirm, 0);
+    }
   }
   else
   {
@@ -302,9 +265,110 @@ String getData(int i)
       break;
   }
   
-    
-  
 }
+
+void ChangeSetting(int setting) {
+  if(beenClick)
+  {
+    setMax = !setMax;
+  }
+  switch (setting) {
+    case 1:
+      if(deltaEncoder != 0)
+      {
+        int newPulse = fingers[page - numOfCOptions - 5].minPulse;
+        if(setMax)
+          newPulse = fingers[page - numOfCOptions - 5].maxPulse;
+
+        newPulse += deltaEncoder;
+        if(setMax)
+        {
+          if(newPulse < fingers[page - numOfCOptions - 5].minPulse + 100)
+            newPulse = fingers[page - numOfCOptions - 5].minPulse + 100;
+        }
+        else
+        {
+          if(newPulse > fingers[page - numOfCOptions - 5].maxPulse - 100)
+            newPulse = fingers[page - numOfCOptions - 5].maxPulse - 100;
+          if(newPulse < 0)
+            newPulse = 0;
+        }
+        if(setMax)
+        {
+          fingers[page - numOfCOptions - 5].maxPulse = newPulse;
+          MoveFinger(255, page - numOfCOptions - 5);
+        }
+        else
+        {
+          fingers[page - numOfCOptions - 5].minPulse = newPulse;
+          MoveFinger(0, page - numOfCOptions - 5);
+        }
+      }
+      if(setMax)
+      {
+        clearLCD();
+        addToLCD(0,0, "Finger " + (String)(page - numOfCOptions - 4) + " - Pulse");
+        addToLCD(0,1, " -" + (String)fingers[page - numOfCOptions - 5].minPulse + " \1+" + (String)fingers[page - numOfCOptions - 5].maxPulse);
+      }
+      else
+      {
+        clearLCD();
+        addToLCD(0,0, "Finger " + (String)(page - numOfCOptions - 4) + " - Pulse");
+        addToLCD(0,1, "\1-" + (String)fingers[page - numOfCOptions - 5].minPulse + "  +" + (String)fingers[page - numOfCOptions - 5].maxPulse);
+      }
+      break;
+     case 2:
+      if(deltaEncoder != 0)
+      {
+        int newRange = fingers[page - numOfCOptions - 5].minValue;
+        if(setMax)
+          newRange = fingers[page - numOfCOptions - 5].maxValue;
+
+        newRange += deltaEncoder;
+        if(setMax)
+        {
+          if(newRange < fingers[page - numOfCOptions - 5].minValue)
+            newRange = fingers[page - numOfCOptions - 5].maxValue;
+        }
+        else
+        {
+          if(newRange > fingers[page - numOfCOptions - 5].minValue)
+            newRange = fingers[page - numOfCOptions - 5].maxValue;
+          if(newRange < 0)
+            newRange = 0;
+        }
+        if(setMax)
+        {
+          fingers[page - numOfCOptions - 5].maxValue = newRange;
+          MoveFinger(255, page - numOfCOptions - 5);
+        }
+        else
+        {
+          fingers[page - numOfCOptions - 5].minValue = newRange;
+          MoveFinger(0, page - numOfCOptions - 5);
+        }
+      }
+      if(setMax)
+      {
+        clearLCD();
+        addToLCD(0,0, "Finger " + (String)(page - numOfCOptions - 4) + " - Range");
+        addToLCD(0,1, " -" + (String)fingers[page - numOfCOptions - 5].minValue + " \1+" + (String)fingers[page - numOfCOptions - 5].maxValue);
+      }
+      else
+      {
+        clearLCD();
+        addToLCD(0,0, "Finger " + (String)(page - numOfCOptions - 4) + " - Range");
+        addToLCD(0,1, "\1-" + (String)fingers[page - numOfCOptions - 5].minValue + "  +" + (String)fingers[page - numOfCOptions - 5].maxValue);
+      }
+      break;
+  }
+}
+
+
+
+
+
+
 
 void moveToMenu(int _menu)
 {
@@ -314,7 +378,6 @@ void moveToMenu(int _menu)
   menu = _menu;
   page = 0;
   allowControl = true;
-
   ManageUI();
 }
 
