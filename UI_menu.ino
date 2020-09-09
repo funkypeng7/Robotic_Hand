@@ -14,8 +14,10 @@ int selectedFinger;
 //Menu 4 - callibration
 const String callibrationOptions[] = {"Direction", "Range", "Pulses", "Stop Position",  "Save Settings", "Factory Reset"};
 const short numOfCOptions = 6;
+const short timeAtMinPos = 500;
 int setting;
-bool setMax;
+bool setMax, hasBeen, beenChange;
+
 //Menu 5
 //String debugList[] = {"Finger 1 - ", "Range", "Pulse", "Finger 2 - ", "Range", "Pulse", "Finger 3 - ", "Range", "Pulse", "Finger 4 - ", "Range", "Pulse", "Finger 5 - ", "Range", "Pulse",};
 //Menu 6
@@ -52,6 +54,7 @@ void CheckForInteraction()
     hasBeenDown = false;
     if(millis() - holdStartTime > 500)
     {
+      hasBeen = false;
       moveToMenu(0);
     }
     else
@@ -167,6 +170,7 @@ void ManageUI()
       if(beenClick && page < numOfCOptions + 5)
       {
         page += 5;
+        setMax = true;
         setMax = false;
         beenClick = false;
         allowControl = false;
@@ -189,7 +193,7 @@ void ManageUI()
       }
       else
       {
-        ChangeSetting(setting);
+        ChangeSetting(setting, page - numOfCOptions - 5);
       }
     }
   }
@@ -228,7 +232,7 @@ void ManageUI()
     if(page == 3)
     {
       clearLCD();
-      addToLCD(0,0,"Please Reset Arduino");
+      addToLCD(0,0,"Please turn off");
       lockArduino = true;
     }
     else
@@ -267,107 +271,142 @@ String getData(int i)
   
 }
 
-void ChangeSetting(int setting) {
+void ChangeSetting(byte setting, byte finger) {
+  Serial.print("Change Setting");
   if(beenClick)
   {
     setMax = !setMax;
+    beenChange = true;
   }
   switch (setting) {
+    //Range
     case 1:
-      if(deltaEncoder != 0)
-      {
-        int newPulse = fingers[page - numOfCOptions - 5].minPulse;
-        if(setMax)
-          newPulse = fingers[page - numOfCOptions - 5].maxPulse;
-
-        newPulse += deltaEncoder;
-        if(setMax)
+        if(!hasBeen)
         {
-          if(newPulse < fingers[page - numOfCOptions - 5].minPulse + 100)
-            newPulse = fingers[page - numOfCOptions - 5].minPulse + 100;
+          setMax = true;
+          hasBeen = true;
         }
+        if(setMax)
+          MoveFinger(255, finger, true);
         else
-        {
-          if(newPulse > fingers[page - numOfCOptions - 5].maxPulse - 100)
-            newPulse = fingers[page - numOfCOptions - 5].maxPulse - 100;
-          if(newPulse < 0)
-            newPulse = 0;
-        }
-        if(setMax)
-        {
-          fingers[page - numOfCOptions - 5].maxPulse = newPulse;
-          MoveFinger(255, page - numOfCOptions - 5);
-        }
-        else
-        {
-          fingers[page - numOfCOptions - 5].minPulse = newPulse;
-          MoveFinger(0, page - numOfCOptions - 5);
-        }
-      }
-      if(setMax)
-      {
-        clearLCD();
-        addToLCD(0,0, "Finger " + (String)(page - numOfCOptions - 4) + " - Pulse");
-        addToLCD(0,1, " -" + (String)fingers[page - numOfCOptions - 5].minPulse + " \1+" + (String)fingers[page - numOfCOptions - 5].maxPulse);
-      }
-      else
-      {
-        clearLCD();
-        addToLCD(0,0, "Finger " + (String)(page - numOfCOptions - 4) + " - Pulse");
-        addToLCD(0,1, "\1-" + (String)fingers[page - numOfCOptions - 5].minPulse + "  +" + (String)fingers[page - numOfCOptions - 5].maxPulse);
-      }
+          MoveFinger(0, finger, true);
+ 
+      AdjustSetting(finger, fingers[finger].minValue, fingers[finger].maxValue, 255, setMax, 10, 1, " - Range", setMax ? 1: 2); 
       break;
-     case 2:
-      if(deltaEncoder != 0)
+   //Pulse
+   case 2:
+      if(!hasBeen)
       {
-        int newRange = fingers[page - numOfCOptions - 5].minValue;
-        if(setMax)
-          newRange = fingers[page - numOfCOptions - 5].maxValue;
-
-        newRange += deltaEncoder;
-        if(setMax)
-        {
-          if(newRange < fingers[page - numOfCOptions - 5].minValue)
-            newRange = fingers[page - numOfCOptions - 5].maxValue;
-        }
-        else
-        {
-          if(newRange > fingers[page - numOfCOptions - 5].minValue)
-            newRange = fingers[page - numOfCOptions - 5].maxValue;
-          if(newRange < 0)
-            newRange = 0;
-        }
-        if(setMax)
-        {
-          fingers[page - numOfCOptions - 5].maxValue = newRange;
-          MoveFinger(255, page - numOfCOptions - 5);
-        }
-        else
-        {
-          fingers[page - numOfCOptions - 5].minValue = newRange;
-          MoveFinger(0, page - numOfCOptions - 5);
-        }
+        setMax = true;
+        hasBeen = true;
       }
       if(setMax)
-      {
-        clearLCD();
-        addToLCD(0,0, "Finger " + (String)(page - numOfCOptions - 4) + " - Range");
-        addToLCD(0,1, " -" + (String)fingers[page - numOfCOptions - 5].minValue + " \1+" + (String)fingers[page - numOfCOptions - 5].maxValue);
-      }
+        MoveFinger(255, finger);
       else
+        MoveFinger(0, finger, true);
+
+      AdjustSetting(finger, fingers[finger].minPulse, fingers[finger].maxPulse, 10000, setMax, 100, 5, " - Pulse", setMax ? 3: 4); 
+      break;
+  //Hold Position
+  case 3:
+      if(!hasBeen)
       {
-        clearLCD();
-        addToLCD(0,0, "Finger " + (String)(page - numOfCOptions - 4) + " - Range");
-        addToLCD(0,1, "\1-" + (String)fingers[page - numOfCOptions - 5].minValue + "  +" + (String)fingers[page - numOfCOptions - 5].maxValue);
+        MoveFinger(0, finger);
       }
+
+      AdjustSingleSetting(finger, fingers[finger].holdPosition, 255, 1, " - Hold", 5, false);
       break;
   }
 }
 
+void AdjustSetting(short finger, short minValue, short maxValue, short absMax, bool setMax, short offset, byte scrollMultiplier, String title, byte valueToSet)
+{
+  if(deltaEncoder != 0)
+  {
+    short newValue = setMax ? maxValue : minValue;
+    newValue += deltaEncoder * scrollMultiplier - scrollMultiplier + 1;
+    
+    if(setMax) 
+    {
+      if(newValue < minValue + offset)
+        newValue = minValue + offset;
+      if(newValue > absMax)
+        newValue = absMax;
+        
+      maxValue = newValue;
+    } 
+    else 
+    {
+      if(newValue > maxValue - offset)
+        newValue = maxValue - offset;
+      if(newValue < 0)
+        newValue = 0;
 
+      minValue = newValue;
+    }
 
+    //Set Value
+    switch(valueToSet)
+    {
+      case 1:
+        fingers[finger].maxValue = newValue;
+        break;
+      case 2:
+        fingers[finger].minValue = newValue;
+        break;
+      case 3: 
+        fingers[finger].maxPulse = newValue;
+        break;
+      case 4: 
+        fingers[finger].minPulse = newValue;
+        break;
+    }
+  }
+  if(setMax)
+    {
+      clearLCD();
+      addToLCD(0,0, "Finger " + (String)(finger + 1) + title);
+      addToLCD(0,1, " -" + (String)minValue + " \1+" + (String)maxValue);
+    }
+    else
+    {
+      clearLCD();
+      addToLCD(0,0, "Finger " + (String)(finger + 1) + title);
+      addToLCD(0,1, "\1-" + (String)minValue + "  +" + (String)maxValue);
+    }
+}
 
+void AdjustSingleSetting(short finger, short value, short absMax, byte scrollMultiplier, String title, byte valueToSet, bool isBool)
+{
+  if(deltaEncoder != 0)
+  {
+    short newValue = value;
+    newValue += deltaEncoder * scrollMultiplier - scrollMultiplier + 1;
+    
+    if(newValue > absMax)
+      newValue = absMax;
+    if(newValue < 0)
+      newValue = 0;
 
+    value = newValue;
+    
+    //Set Value
+    switch(valueToSet)
+    {
+      case 5:
+        BIT_CLEAR(fingersHeld, finger);
+        
+        fingers[finger].holdPosition = newValue;
+        break;
+    }
+  }
+  if(!isBool)
+  {
+    clearLCD();
+    addToLCD(0,0, "Finger " + (String)(finger + 1) + title);
+    addToLCD(0,1, "\1-" + (String)value);
+  }
+}
 
 
 void moveToMenu(int _menu)

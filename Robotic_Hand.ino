@@ -159,6 +159,7 @@ void loop() {
 //  addToLCD(0,0, "1: " + (String)fingers[0].minValue + " 2: " + (String)fingers[1].minValue + "        ");
   handleSerial();
   checkServoPulse();
+  CheckServosHoldPosition();
   CheckForInteraction();
   ManageUI();
   displayLCD();
