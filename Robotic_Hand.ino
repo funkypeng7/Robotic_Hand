@@ -10,7 +10,7 @@
 
 //UI
 byte menu = 0;
-byte page = 0;
+short page = 0;
 bool beenClick, beenHold;
 volatile unsigned long lastInteraction;
 bool lockArduino;
@@ -27,6 +27,7 @@ volatile int deltaEncoder;
 bool beenPressed;
 unsigned long pressTime;
 
+// Finger class - used to hold all data on a finger - with default values (for factory reset)
 class Finger
 {
   public:
@@ -37,107 +38,44 @@ class Finger
   byte minValue= 10, maxValue = 240; 
 };
 
+// All fingers
 Finger fingers[5];
+// Current Selected Finger
 int currentFinger = 0;
 
+// LCD Screen
 LiquidCrystal_I2C lcd(0x27,16,2);
-char empty[2][16] = {"                ", "                "};
+
+// LCD Display Info 
+const char empty[2][16] = {"                ", "                "};
 char LCDData[2][16] = {"                ", "                "};
 char prevLCDData[2][16] = {"                ", "                "};
 
+
+// Servo Driver
 Adafruit_PWMServoDriver servos = Adafruit_PWMServoDriver();
+// Pulse Info
 int servoPulse[5] = {0,0,0,0,0};
 int actualServoPulse[5] = {0,0,0,0,0};
 
-const byte arrow[] = {
-  B00000,
-  B00100,
-  B00010,
-  B11111,
-  B00010,
-  B00100,
-  B00000,
-  B00000
-};
-const byte backArrow[] = {
-  B00000,
-  B11111,
-  B00001,
-  B00101,
-  B01001,
-  B11111,
-  B01000,
-  B00100
-};
-const byte lowerBounds[] = {
-  B10000,
-  B10000,
-  B10000,
-  B11111,
-  B10000,
-  B10000,
-  B10000,
-  B00000
-};
-const byte upperBounds[] = {
-  B00001,
-  B00001,
-  B00001,
-  B11111,
-  B00001,
-  B00001,
-  B00001,
-  B00000
-};
-const byte lowerPulseBounds[] = {
-  B10000,
-  B10000,
-  B10101,
-  B11010,
-  B10101,
-  B10000,
-  B10000,
-  B00000
-};
-const byte upperPulseBounds[] = {
-  B00001,
-  B00001,
-  B10101,
-  B01011,
-  B10101,
-  B00001,
-  B00001,
-  B00000
-};
 
 void setup() {
   
+  // Set Initial Menu Location
   connectionType = 0;
   menu = 1;
   
-  
-
-  //Retrieve from EEPROM
+  // Retrieve saved finger configuration from EEPROM
   retreiveFromEEPROM();
   
-  fingers[4].reverse = true;
-  //LCD Setup
-  lcd.init();
-  lcd.backlight();
-  lcd.home();
-  lcd.print("Check Encoder");
-  lcd.createChar(1, arrow);
-  lcd.createChar(2, backArrow);
-  lcd.createChar(3, lowerBounds);
-  lcd.createChar(4, upperBounds);
-  lcd.createChar(5, lowerPulseBounds);
-  lcd.createChar(6, upperPulseBounds);
+  // LCD Setup
+  InitLCD();
   
-  //Servos
+  // Servos Initialization
   servos.begin();
   servos.setPWMFreq(50);
   
-  //Serial
+  // Serial
   Serial.begin(115200);
   Serial.println("Robotic Hand Debug:");
   BTSerial.begin(9600);

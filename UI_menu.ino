@@ -1,7 +1,6 @@
 unsigned long holdStartTime;
 bool hasBeenDown;
 
-
 //Menu 0
 const String menus[] = {"Info screen", "Connection Type", "Manual Control", "Calibration", "Finger Data"};
 const short numOfMenus = 5;
@@ -12,14 +11,12 @@ const short numOfConnections = 3;
 const String fingerList[] = {"Finger 1", "Finger 2", "Finger 3", "Finger 4", "Finger 5"};
 int selectedFinger;
 //Menu 4 - callibration
-const String callibrationOptions[] = {"Direction", "Range", "Pulses", "Stop Position",  "Save Settings", "Factory Reset"};
+const String callibrationOptions[] = {"Direction", "Range", "Pulses", "Hold Position",  "Save Settings", "Factory Reset"};
 const short numOfCOptions = 6;
 const short timeAtMinPos = 500;
 int setting;
 bool setMax, hasBeen, beenChange;
 
-//Menu 5
-//String debugList[] = {"Finger 1 - ", "Range", "Pulse", "Finger 2 - ", "Range", "Pulse", "Finger 3 - ", "Range", "Pulse", "Finger 4 - ", "Range", "Pulse", "Finger 5 - ", "Range", "Pulse",};
 //Menu 6
 const String confirmMenu[] {"Back", "I Want To Reset"};
 byte numOfConfirm = 2;
@@ -27,7 +24,6 @@ byte numOfConfirm = 2;
 
 void CheckForInteraction()
 {
-  Serial.println(page);
 
   beenClick = false;
   beenHold = false;
@@ -60,7 +56,6 @@ void CheckForInteraction()
     else
     {
       beenClick = true;
-      Serial.println("click");
     }
     
   }
@@ -272,13 +267,17 @@ String getData(int i)
 }
 
 void ChangeSetting(byte setting, byte finger) {
-  Serial.print("Change Setting");
   if(beenClick)
   {
     setMax = !setMax;
     beenChange = true;
   }
   switch (setting) {
+    //Reverse
+    case 0: 
+      MoveFinger(255, finger);
+      AdjustSingleSetting(finger, (float)fingers[finger].reverse, 1, 1, " - Reverse", 0, true);
+      break;
     //Range
     case 1:
         if(!hasBeen)
@@ -287,11 +286,15 @@ void ChangeSetting(byte setting, byte finger) {
           hasBeen = true;
         }
         if(setMax)
-          MoveFinger(255, finger, true);
+          MoveFinger(255, finger);
         else
+        {
           MoveFinger(0, finger, true);
- 
-      AdjustSetting(finger, fingers[finger].minValue, fingers[finger].maxValue, 255, setMax, 10, 1, " - Range", setMax ? 1: 2); 
+          BIT_SET(fingersBelowMin, finger);
+          BIT_CLEAR(fingersHeld, finger);
+          timeSinceMinPos[finger] = millis();
+        }
+        AdjustSetting(finger, fingers[finger].minValue, fingers[finger].maxValue, 255, setMax, 10, 1, " - Range", setMax ? 1: 2); 
       break;
    //Pulse
    case 2:
@@ -303,8 +306,12 @@ void ChangeSetting(byte setting, byte finger) {
       if(setMax)
         MoveFinger(255, finger);
       else
+      {
         MoveFinger(0, finger, true);
-
+        BIT_SET(fingersBelowMin, finger);
+        BIT_CLEAR(fingersHeld, finger);
+        timeSinceMinPos[finger] = millis();
+      }
       AdjustSetting(finger, fingers[finger].minPulse, fingers[finger].maxPulse, 10000, setMax, 100, 5, " - Pulse", setMax ? 3: 4); 
       break;
   //Hold Position
@@ -313,7 +320,6 @@ void ChangeSetting(byte setting, byte finger) {
       {
         MoveFinger(0, finger);
       }
-
       AdjustSingleSetting(finger, fingers[finger].holdPosition, 255, 1, " - Hold", 5, false);
       break;
   }
@@ -382,20 +388,32 @@ void AdjustSingleSetting(short finger, short value, short absMax, byte scrollMul
   {
     short newValue = value;
     newValue += deltaEncoder * scrollMultiplier - scrollMultiplier + 1;
-    
-    if(newValue > absMax)
-      newValue = absMax;
-    if(newValue < 0)
-      newValue = 0;
 
+    if(isBool)
+    {
+      for(int i = 0; i< deltaEncoder; i++)
+      {
+        value = !(bool)value;
+      }
+    }
+    else
+    {
+      if(newValue > absMax)
+        newValue = absMax;
+      if(newValue < 0)
+        newValue = 0;
+    }
+    
     value = newValue;
     
     //Set Value
     switch(valueToSet)
     {
+      case 0:
+        fingers[finger].reverse = (bool)newValue;
+        break;
       case 5:
         BIT_CLEAR(fingersHeld, finger);
-        
         fingers[finger].holdPosition = newValue;
         break;
     }
@@ -405,6 +423,12 @@ void AdjustSingleSetting(short finger, short value, short absMax, byte scrollMul
     clearLCD();
     addToLCD(0,0, "Finger " + (String)(finger + 1) + title);
     addToLCD(0,1, "\1-" + (String)value);
+  }
+  else
+  {
+    clearLCD();
+    addToLCD(0,0, "Finger " + (String)(finger + 1) + title);
+    addToLCD(0,1, "\1-" + (bool)(value) ? "Reversed": "Normal");
   }
 }
 
@@ -426,9 +450,16 @@ void DisplayList(String items[], short numOfItems, short pageOffset)
   {
     page += deltaEncoder;
     if(page - pageOffset < 0)
+    {
       page = pageOffset;
+      Serial.println("page - pageOffset < 0");
+    }
     if(page - pageOffset >= numOfItems)
+    {
       page = numOfItems - 1 + pageOffset;
+      Serial.println("page - pageOffset >= numOfItems");
+    }
+      
     deltaEncoder = 0;
   }
   clearLCD();
