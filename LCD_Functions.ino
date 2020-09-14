@@ -80,7 +80,7 @@ void InitLCD()
 
 
 // Change only characters that differ from the current display
-void displayLCD()
+void DisplayLCD()
 {
   if(beenHold)
   {
@@ -110,7 +110,7 @@ void displayLCD()
   }
 }
 
-void clearLCD()
+void ClearLCD()
 {
   for(int x = 0; x < 16; x++)
   {
@@ -121,7 +121,7 @@ void clearLCD()
   }
 }
 
-void addToLCD(int cursorX, int cursorY, String text)
+void AddToLCD(int cursorX, int cursorY, String text)
 {
   for(int i = cursorX; i < (cursorX + (int)text.length()) && i < 16; i++)
   {

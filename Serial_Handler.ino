@@ -1,7 +1,7 @@
 byte data[2] = {0,0};
 int index;
 
-void handleSerial()
+void HandleSerial()
 {
   if(connectionType == 1 && analogRead(A6) > 500 && BTSerial.available() > 0)
   {

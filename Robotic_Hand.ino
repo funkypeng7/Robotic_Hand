@@ -66,7 +66,7 @@ void setup() {
   menu = 1;
   
   // Retrieve saved finger configuration from EEPROM
-  retreiveFromEEPROM();
+  RetreiveFromEEPROM();
   
   // LCD Setup
   InitLCD();
@@ -85,7 +85,7 @@ void setup() {
   {
     MoveFinger(255, i);
   }
-  checkServoPulse();
+  CheckServoPulse();
   
   //Encoder Setup
     attachInterrupt(digitalPinToInterrupt(outputA), isr, LOW);
@@ -94,11 +94,11 @@ void setup() {
 void loop() {
 
   // put your main code here, to run repeatedly:
-//  addToLCD(0,0, "1: " + (String)fingers[0].minValue + " 2: " + (String)fingers[1].minValue + "        ");
-  handleSerial();
-  checkServoPulse();
+//  AddToLCD(0,0, "1: " + (String)fingers[0].minValue + " 2: " + (String)fingers[1].minValue + "        ");
+  HandleSerial();
+  CheckServoPulse();
   CheckServosHoldPosition();
   CheckForInteraction();
   ManageUI();
-  displayLCD();
+  DisplayLCD();
 }

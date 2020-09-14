@@ -3,16 +3,16 @@
 //Byte 2 onwards: 5 x Finger(Reverse (1), MinPulse(2), MaxPulse(2), MinValue(1), MaxValue(1))
 //
 
-void saveToEEPROM()
+void SaveToEEPROM()
 {
   EEPROM.put(1, fingers);
 }
 
-void retreiveFromEEPROM()
+void RetreiveFromEEPROM()
 {
   if(EEPROM.read(0) == 1)
   {
-    saveToEEPROM();
+    SaveToEEPROM();
     EEPROM.write(0,0);
   }
   else

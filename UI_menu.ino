@@ -51,7 +51,7 @@ void CheckForInteraction()
     if(millis() - holdStartTime > 500)
     {
       hasBeen = false;
-      moveToMenu(0);
+      MoveToMenu(0);
     }
     else
     {
@@ -66,7 +66,7 @@ void CheckTimeout()
 {
   if(menu != 1 && millis() - lastInteraction > 20000)
   {
-    moveToMenu(1);
+    MoveToMenu(1);
   }
 }
 
@@ -76,7 +76,7 @@ void ManageUI()
   {
     if(beenClick)
     {
-      moveToMenu(page + 1);
+      MoveToMenu(page + 1);
       return;
     }
     DisplayList(menus, numOfMenus, 0);
@@ -85,26 +85,26 @@ void ManageUI()
   {
     if(beenClick)
     {
-      moveToMenu(0);
+      MoveToMenu(0);
       return;
     }
-    clearLCD();
-    addToLCD(0,0, "1:" + (String)fingers[0].currentPosition + " 2:" + (String)fingers[1].currentPosition + " 3:" + (String)fingers[2].currentPosition);
-    addToLCD(0,1, "4:" + (String)fingers[3].currentPosition + " 5:" + (String)fingers[4].currentPosition);
+    ClearLCD();
+    AddToLCD(0,0, "1:" + (String)fingers[0].currentPosition + " 2:" + (String)fingers[1].currentPosition + " 3:" + (String)fingers[2].currentPosition);
+    AddToLCD(0,1, "4:" + (String)fingers[3].currentPosition + " 5:" + (String)fingers[4].currentPosition);
     
     if(connectionType == 0)
-      addToLCD(15,1, "S");
+      AddToLCD(15,1, "S");
     else if(connectionType == 1)
-      addToLCD(15,1, "B");
+      AddToLCD(15,1, "B");
     else if(connectionType == 2)
-      addToLCD(15,1, "C");
+      AddToLCD(15,1, "C");
   }
   else if(menu == 2)
   {
     if(beenClick)
     {
       connectionType = page;
-      moveToMenu(1);
+      MoveToMenu(1);
       return;
     }
     DisplayList(typesOfConnections, numOfConnections, 0);
@@ -123,7 +123,7 @@ void ManageUI()
     {
       if(beenClick)
       {
-        moveToMenu(0);
+        MoveToMenu(0);
         return;
       }
       if(deltaEncoder != 0)
@@ -136,8 +136,8 @@ void ManageUI()
           newPosition = fingers[page - 5].maxValue;
         MoveFinger(newPosition, page - 5);
       }
-      clearLCD();
-      addToLCD(0,0, "Finger " + (String)(page - 4) + ": " + (String)(fingers[page - 5].currentPosition));
+      ClearLCD();
+      AddToLCD(0,0, "Finger " + (String)(page - 4) + ": " + (String)(fingers[page - 5].currentPosition));
     }
   }
   else if(menu == 4)
@@ -148,7 +148,7 @@ void ManageUI()
         page = 30;
       else if(page == 5)
       {
-        moveToMenu(6);
+        MoveToMenu(6);
       }
       else
       {
@@ -174,17 +174,17 @@ void ManageUI()
         DisplayList(fingerList, 5, numOfCOptions);
       else if(page == 30)
       {
-        saveToEEPROM();
-        clearLCD();
-        addToLCD(0,0, "Save Successful");
+        SaveToEEPROM();
+        ClearLCD();
+        AddToLCD(0,0, "Save Successful");
         page = 31;
         return;
       }
       else if(page == 31)
       {
-        clearLCD();
-        addToLCD(0,0, "Save Successful");
-        addToLCD(0,1, "Hold To Exit");
+        ClearLCD();
+        AddToLCD(0,0, "Save Successful");
+        AddToLCD(0,1, "Hold To Exit");
       }
       else
       {
@@ -196,7 +196,7 @@ void ManageUI()
   {
     if(beenClick)
     {
-      moveToMenu(0);
+      MoveToMenu(0);
       return;
     }
     if(deltaEncoder != 0)
@@ -207,16 +207,16 @@ void ManageUI()
       if(page > 18)
         page = 18;
     }
-    clearLCD();
-    addToLCD(0,0, getData(page));
-    addToLCD(0,1, getData(page + 1));
+    ClearLCD();
+    AddToLCD(0,0, GetData(page));
+    AddToLCD(0,1, GetData(page + 1));
   }
   else if(menu == 6)
   {
     if(beenClick)
     {
       if(page == 0)
-        moveToMenu(0);
+        MoveToMenu(0);
       else
       {
         EEPROM.write(0,1);
@@ -226,8 +226,8 @@ void ManageUI()
     
     if(page == 3)
     {
-      clearLCD();
-      addToLCD(0,0,"Please turn off");
+      ClearLCD();
+      AddToLCD(0,0,"Please turn off");
       lockArduino = true;
     }
     else
@@ -237,12 +237,12 @@ void ManageUI()
   }
   else
   {
-    moveToMenu(0);
+    MoveToMenu(0);
   }
   deltaEncoder = 0;
 }
 
-String getData(int i)
+String GetData(int i)
 {
   short finger = floor(i/4);
   switch(i % 4)
@@ -370,15 +370,15 @@ void AdjustSetting(short finger, short minValue, short maxValue, short absMax, b
   }
   if(setMax)
     {
-      clearLCD();
-      addToLCD(0,0, "Finger " + (String)(finger + 1) + title);
-      addToLCD(0,1, " -" + (String)minValue + " \1+" + (String)maxValue);
+      ClearLCD();
+      AddToLCD(0,0, "Finger " + (String)(finger + 1) + title);
+      AddToLCD(0,1, " -" + (String)minValue + " \1+" + (String)maxValue);
     }
     else
     {
-      clearLCD();
-      addToLCD(0,0, "Finger " + (String)(finger + 1) + title);
-      addToLCD(0,1, "\1-" + (String)minValue + "  +" + (String)maxValue);
+      ClearLCD();
+      AddToLCD(0,0, "Finger " + (String)(finger + 1) + title);
+      AddToLCD(0,1, "\1-" + (String)minValue + "  +" + (String)maxValue);
     }
 }
 
@@ -420,20 +420,20 @@ void AdjustSingleSetting(short finger, short value, short absMax, byte scrollMul
   }
   if(!isBool)
   {
-    clearLCD();
-    addToLCD(0,0, "Finger " + (String)(finger + 1) + title);
-    addToLCD(0,1, "\1-" + (String)value);
+    ClearLCD();
+    AddToLCD(0,0, "Finger " + (String)(finger + 1) + title);
+    AddToLCD(0,1, "\1-" + (String)value);
   }
   else
   {
-    clearLCD();
-    addToLCD(0,0, "Finger " + (String)(finger + 1) + title);
-    addToLCD(0,1, "\1-" + (bool)(value) ? "Reversed": "Normal");
+    ClearLCD();
+    AddToLCD(0,0, "Finger " + (String)(finger + 1) + title);
+    AddToLCD(0,1, "\1-" + (bool)(value) ? "Reversed": "Normal");
   }
 }
 
 
-void moveToMenu(int _menu)
+void MoveToMenu(int _menu)
 {
   beenClick = false;
   beenHold = false;
@@ -462,17 +462,17 @@ void DisplayList(String items[], short numOfItems, short pageOffset)
       
     deltaEncoder = 0;
   }
-  clearLCD();
-  addToLCD(0,0, "\1" + items[page - pageOffset]);
+  ClearLCD();
+  AddToLCD(0,0, "\1" + items[page - pageOffset]);
   if(page - pageOffset + 1 < numOfItems)
   {
-    addToLCD(0,1," " + items[page - pageOffset + 1]);
+    AddToLCD(0,1," " + items[page - pageOffset + 1]);
   } 
   if(page - pageOffset + 1 == numOfItems)
   {
-    clearLCD();
-    addToLCD(0,0, " " + items[page - pageOffset - 1]);
-    addToLCD(0,1, "\1" + items[page - pageOffset]);
+    ClearLCD();
+    AddToLCD(0,0, " " + items[page - pageOffset - 1]);
+    AddToLCD(0,1, "\1" + items[page - pageOffset]);
   }
 
 }

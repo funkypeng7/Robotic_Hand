@@ -44,7 +44,7 @@ void MoveFinger(short value, byte finger)
   {
     value = fingers[finger].maxValue - value;
   }
-  servoPulse[finger] = pulseWidth(value, finger);
+  servoPulse[finger] = PulseWidth(value, finger);
 }
 
 void CheckServosHoldPosition()
@@ -72,10 +72,10 @@ void MoveFinger(short value, byte finger, bool noHoldPos)
   {
     value = fingers[finger].maxValue - value;
   }
-  servoPulse[finger] = pulseWidth(value, finger);
+  servoPulse[finger] = PulseWidth(value, finger);
 }
 
-int pulseWidth(int value, int finger)
+int PulseWidth(int value, int finger)
 {
   int pulse_wide, analog_value;
   pulse_wide = map(value, 0, 244, fingers[finger].minPulse, fingers[finger].maxPulse);
@@ -83,7 +83,7 @@ int pulseWidth(int value, int finger)
   return analog_value;
 }
 
-void checkServoPulse()
+void CheckServoPulse()
 {
   for(int i = 0; i < 5; i++)
   {
