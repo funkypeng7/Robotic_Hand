@@ -3,6 +3,7 @@
 #include <Adafruit_PWMServoDriver.h>
 #include <AltSoftSerial.h>
 #include <EEPROM.h>
+#include <avr/pgmspace.h>
 
 #define outputA 2
 #define outputB 4
@@ -11,7 +12,7 @@
 //UI
 byte menu = 0;
 short page = 0;
-bool beenClick, beenHold;
+bool beenClick, beenHold, beenReturnHold;
 volatile unsigned long lastInteraction;
 bool lockArduino;
 
@@ -40,6 +41,7 @@ class Finger
 
 // All fingers
 Finger fingers[5];
+Finger allFingers;
 // Current Selected Finger
 int currentFinger = 0;
 
@@ -63,7 +65,7 @@ void setup() {
   
   // Set Initial Menu Location
   connectionType = 0;
-  menu = 1;
+  menu = 0;
   
   // Retrieve saved finger configuration from EEPROM
   RetreiveFromEEPROM();
@@ -85,6 +87,7 @@ void setup() {
   {
     MoveFinger(255, i);
   }
+  allFingers.currentPosition = allFingers.maxValue;
   CheckServoPulse();
   
   //Encoder Setup
@@ -92,7 +95,10 @@ void setup() {
 }
 
 void loop() {
-
+  if(menu == 0 && page == 0)
+  {
+    Serial.println("Menu is good");
+  }
   // put your main code here, to run repeatedly:
 //  AddToLCD(0,0, "1: " + (String)fingers[0].minValue + " 2: " + (String)fingers[1].minValue + "        ");
   HandleSerial();

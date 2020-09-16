@@ -2,242 +2,253 @@ unsigned long holdStartTime;
 bool hasBeenDown;
 
 //Menu 0
-const String menus[] = {"Info screen", "Connection Type", "Manual Control", "Calibration", "Finger Data"};
-const short numOfMenus = 5;
+#define MainMenuReturnTime 1500
+#define ReturnTime 500
+const String menus[] = {"Demo", "Connection Type", "Manual Control", "Settings"};
+const byte numOfMenus = 4;
 //Menu 2 - Connection
 const String typesOfConnections[] = {"Serial", "Bluetooth", "Controller"};
-const short numOfConnections = 3;
+const byte numOfConnections = 3;
 //Menu 3 - Manual Control
 const String fingerList[] = {"Finger 1", "Finger 2", "Finger 3", "Finger 4", "Finger 5"};
+//const String fingerListAndAll[] = {"Finger 1", "Finger 2", "Finger 3", "Finger 4", "Finger 5", "All"};
 int selectedFinger;
-//Menu 4 - callibration
+//Menu 4 - settings
+const String settings[] = {"Configuration", "Debug"};
+const byte numOfSettings = 2;
+//Menu 5 - callibration
 const String callibrationOptions[] = {"Direction", "Range", "Pulses", "Hold Position",  "Save Settings", "Factory Reset"};
-const short numOfCOptions = 6;
+const byte numOfCOptions = 6;
 const short timeAtMinPos = 500;
 int setting;
 bool setMax, hasBeen, beenChange;
-
-//Menu 6
-const String confirmMenu[] {"Back", "I Want To Reset"};
+//Menu 6 - Debug
+//Menu 7
+const String confirmMenu[] = {"Back", "I Want To Reset"};
 byte numOfConfirm = 2;
-
-
-void CheckForInteraction()
-{
-
-  beenClick = false;
-  beenHold = false;
-  
-  if(lockArduino)
-    return;
-    
-  if(!digitalRead(5) && !hasBeenDown)
-  {
-    lastInteraction = millis();
-    holdStartTime = millis();
-    hasBeenDown = true;
-  }
-
-  if(!digitalRead(5) && millis() - holdStartTime > 500)
-  {
-    lastInteraction = millis();
-     beenHold = true;
-  }
-  
-  if(digitalRead(5) && hasBeenDown)
-  {
-    lastInteraction = millis();
-    hasBeenDown = false;
-    if(millis() - holdStartTime > 500)
-    {
-      hasBeen = false;
-      MoveToMenu(0);
-    }
-    else
-    {
-      beenClick = true;
-    }
-    
-  }
-  CheckTimeout();
-  
-}
-void CheckTimeout()
-{
-  if(menu != 1 && millis() - lastInteraction > 20000)
-  {
-    MoveToMenu(1);
-  }
-}
 
 void ManageUI()
 {
-  if(menu == 0)
+  switch(menu)
   {
-    if(beenClick)
-    {
-      MoveToMenu(page + 1);
-      return;
-    }
-    DisplayList(menus, numOfMenus, 0);
-  }
-  else if(menu == 1)
-  {
-    if(beenClick)
-    {
-      MoveToMenu(0);
-      return;
-    }
-    ClearLCD();
-    AddToLCD(0,0, "1:" + (String)fingers[0].currentPosition + " 2:" + (String)fingers[1].currentPosition + " 3:" + (String)fingers[2].currentPosition);
-    AddToLCD(0,1, "4:" + (String)fingers[3].currentPosition + " 5:" + (String)fingers[4].currentPosition);
-    
-    if(connectionType == 0)
-      AddToLCD(15,1, "S");
-    else if(connectionType == 1)
-      AddToLCD(15,1, "B");
-    else if(connectionType == 2)
-      AddToLCD(15,1, "C");
-  }
-  else if(menu == 2)
-  {
-    if(beenClick)
-    {
-      connectionType = page;
-      MoveToMenu(1);
-      return;
-    }
-    DisplayList(typesOfConnections, numOfConnections, 0);
-  }
-  else if(menu == 3)
-  {
-    if((beenClick) && page < 5)
-    {
-      page += 5;
-      beenClick = false;
-      allowControl = false;
-    }
-    if(page < 5)
-      DisplayList(fingerList, 5, 0);
-    else
-    {
+    // Main menu
+    case 0:
       if(beenClick)
       {
-        MoveToMenu(0);
+        MoveToMenu(page + 1);
+        return;
+      }
+      DisplayList(menus, numOfMenus, 0);
+      Serial.println((String)LCDData[0]);
+      break;
+
+    // Info Screen - to be replaced by demo
+    case 1:
+      ClearLCD();
+      AddToLCD(0,0, F("Will be Demo"));
+//      if(beenClick)
+//      {
+//        MoveToMenu(0);
+//        return;
+//      }
+//      ClearLCD();
+//      AddToLCD(0,0, "1:" + (String)fingers[0].currentPosition + " 2:" + (String)fingers[1].currentPosition + " 3:" + (String)fingers[2].currentPosition);
+//      AddToLCD(0,1, "4:" + (String)fingers[3].currentPosition + " 5:" + (String)fingers[4].currentPosition);
+//      
+//      if(connectionType == 0)
+//        AddToLCD(15,1, "S");
+//      else if(connectionType == 1)
+//        AddToLCD(15,1, "B");
+//      else if(connectionType == 2)
+//        AddToLCD(15,1, "C");
+      break;
+
+    // Connection Menu
+    case 2:
+      if(beenClick && page < numOfConnections)
+      {
+        connectionType = page;
+        page += numOfConnections;
+        return;
+      }
+      if(page < numOfConnections)
+        DisplayList(typesOfConnections, numOfConnections, 0);
+      else
+      {
+        ClearLCD();
+        AddToLCD(0,0, F("Connected To:"));
+        AddToLCD(0,1, typesOfConnections[connectionType]);
+      }
+      break;
+
+    // Manual Control
+    case 3:
+      if((beenClick) && page < 5)
+      {
+        page += 6;
+        beenClick = false;
+        allowControl = false;
+      }
+      if(page < 6)
+        DisplayList(fingerList, 6, 0);
+//        DisplayList(fingerListAndAll, 6, 0);
+      else if(page < 11)
+      {
+        if(beenClick)
+        {
+          Return();
+          return;
+        }
+        if(deltaEncoder != 0)
+        {
+          int newPosition = fingers[page - 5].currentPosition;
+          newPosition += deltaEncoder * 3 - 2 * deltaEncoder/abs(deltaEncoder);
+          if(newPosition < fingers[page - 5].minValue)
+            newPosition = fingers[page - 5].minValue;
+          if(newPosition > fingers[page - 5].maxValue)
+            newPosition = fingers[page - 5].maxValue;
+          MoveFinger(newPosition, page - 5);
+        }
+        ClearLCD();
+        AddToLCD(0,0, "Finger " + (String)(page - 4) + ": " + (String)(fingers[page - 5].currentPosition));
+      }
+//      else
+//      {
+//        if(beenClick)
+//        {
+//          Return();
+//          return;
+//        }
+//        if(deltaEncoder != 0)
+//        {
+//          int newPosition = allFingers.currentPosition;
+//          newPosition += deltaEncoder * 3 - 2 * deltaEncoder/abs(deltaEncoder);
+//          if(newPosition < allFingers.minValue)
+//            newPosition = allFingers.minValue;
+//          if(newPosition > allFingers.maxValue)
+//            newPosition = allFingers.maxValue;
+//
+//          for(int i = 1; i < 5; i++)
+//          {
+//            MoveFinger(map(newPosition, allFingers.minValue, allFingers.maxValue, fingers[i].minValue, fingers[i].maxValue), i);
+//          }
+//          
+//        }
+//        ClearLCD();
+//        AddToLCD(0,0, "Finger " + (String)(page - 4) + ": " + (String)(fingers[page - 5].currentPosition));
+//      }
+      break;
+
+    // Settings
+    case 4:
+      if(beenClick)
+      {
+        MoveToMenu(page + 5);
+      }
+      DisplayList(settings, numOfSettings, 0);
+      break;
+
+    // Configuration Menu
+    case 5:
+      if(beenClick && page < numOfCOptions)
+      {
+        if(page == 4)
+          page = 30;
+        else if(page == 5)
+        {
+          MoveToMenu(7);
+        }
+        else
+        {
+          setting = page;
+          page = numOfCOptions;
+          beenClick = false;
+          allowControl = false;
+        }
+      }
+      if(page < numOfCOptions)
+        DisplayList(callibrationOptions, numOfCOptions, 0);
+      if(page >= numOfCOptions)
+      {
+        if(beenClick && page < numOfCOptions + 5)
+        {
+          page += 5;
+          setMax = true;
+          setMax = false;
+          beenClick = false;
+          allowControl = false;
+        }
+        if(page < numOfCOptions + 5)
+          DisplayList(fingerList, 5, numOfCOptions);
+        else if(page == 30)
+        {
+          SaveToEEPROM();
+          ClearLCD();
+          AddToLCD(0,0, "Save Successful");
+          page = 31;
+          return;
+        }
+        else if(page == 31)
+        {
+          ClearLCD();
+          AddToLCD(0,0, "Save Successful");
+          AddToLCD(0,1, "Hold To Exit");
+        }
+        else
+        {
+          ChangeSetting(setting, page - numOfCOptions - 5);
+        }
+      }
+      break;
+
+    // Debug
+    case 6:
+      if(beenClick)
+      {
+        Return();
         return;
       }
       if(deltaEncoder != 0)
       {
-        int newPosition = fingers[page - 5].currentPosition;
-        newPosition += deltaEncoder * 3 - 2 * deltaEncoder/abs(deltaEncoder);
-        if(newPosition < fingers[page - 5].minValue)
-          newPosition = fingers[page - 5].minValue;
-        if(newPosition > fingers[page - 5].maxValue)
-          newPosition = fingers[page - 5].maxValue;
-        MoveFinger(newPosition, page - 5);
+        page += deltaEncoder;
+        if(page < 0)
+          page = 0;
+        if(page > 23)
+          page = 23;
       }
       ClearLCD();
-      AddToLCD(0,0, "Finger " + (String)(page - 4) + ": " + (String)(fingers[page - 5].currentPosition));
-    }
-  }
-  else if(menu == 4)
-  {
-    if(beenClick && page < numOfCOptions)
-    {
-      if(page == 4)
-        page = 30;
-      else if(page == 5)
+      AddToLCD(0,0, GetData(page));
+      AddToLCD(0,1, GetData(page + 1));
+      break;
+
+    // Factory Reset
+    case 7:
+      if(beenClick)
       {
-        MoveToMenu(6);
+        if(page == 0)
+          Return();
+        else
+        {
+          EEPROM.write(0,1);
+          page = 3;
+        }
+      }
+      
+      if(page == 3)
+      {
+        ClearLCD();
+        AddToLCD(0,0,"Please turn off");
+        lockArduino = true;
       }
       else
       {
-        setting = page;
-        page = numOfCOptions;
-        beenClick = false;
-        allowControl = false;
+        DisplayList(confirmMenu, numOfConfirm, 0);
       }
-    }
-    if(page < numOfCOptions)
-      DisplayList(callibrationOptions, numOfCOptions, 0);
-    if(page >= numOfCOptions)
-    {
-      if(beenClick && page < numOfCOptions + 5)
-      {
-        page += 5;
-        setMax = true;
-        setMax = false;
-        beenClick = false;
-        allowControl = false;
-      }
-      if(page < numOfCOptions + 5)
-        DisplayList(fingerList, 5, numOfCOptions);
-      else if(page == 30)
-      {
-        SaveToEEPROM();
-        ClearLCD();
-        AddToLCD(0,0, "Save Successful");
-        page = 31;
-        return;
-      }
-      else if(page == 31)
-      {
-        ClearLCD();
-        AddToLCD(0,0, "Save Successful");
-        AddToLCD(0,1, "Hold To Exit");
-      }
-      else
-      {
-        ChangeSetting(setting, page - numOfCOptions - 5);
-      }
-    }
-  }
-  else if(menu == 5)
-  {
-    if(beenClick)
-    {
+      break;
+      
+    default:
       MoveToMenu(0);
-      return;
-    }
-    if(deltaEncoder != 0)
-    {
-      page += deltaEncoder;
-      if(page < 0)
-        page = 0;
-      if(page > 18)
-        page = 18;
-    }
-    ClearLCD();
-    AddToLCD(0,0, GetData(page));
-    AddToLCD(0,1, GetData(page + 1));
-  }
-  else if(menu == 6)
-  {
-    if(beenClick)
-    {
-      if(page == 0)
-        MoveToMenu(0);
-      else
-      {
-        EEPROM.write(0,1);
-        page = 3;
-      }
-    }
-    
-    if(page == 3)
-    {
-      ClearLCD();
-      AddToLCD(0,0,"Please turn off");
-      lockArduino = true;
-    }
-    else
-    {
-      DisplayList(confirmMenu, numOfConfirm, 0);
-    }
-  }
-  else
-  {
-    MoveToMenu(0);
+      break;
   }
   deltaEncoder = 0;
 }
@@ -245,7 +256,7 @@ void ManageUI()
 String GetData(int i)
 {
   short finger = floor(i/4);
-  switch(i % 4)
+  switch(i % 5)
   {
     case 0:
       return "Finger " + (String)(finger + 1) + " - " + (String)fingers[finger].currentPosition;
@@ -256,12 +267,17 @@ String GetData(int i)
       else
         return  F(" Direction = N");
       break;
-    case 2: 
-      return " \3" + (String)fingers[finger].minValue + " - " + (String)fingers[finger].maxValue + "\4";
+    case 2:
+      return " Hold - "  + (String)fingers[finger].holdPosition;
       break;
     case 3: 
+      return " \3" + (String)fingers[finger].minValue + " - " + (String)fingers[finger].maxValue + "\4";
+      break;
+    case 4: 
       return " \5" + (String)fingers[finger].minPulse + " - " + (String)fingers[finger].maxPulse + "\6";
       break;
+    default:
+      return " Error ";
   }
   
 }
@@ -432,18 +448,6 @@ void AdjustSingleSetting(short finger, short value, short absMax, byte scrollMul
   }
 }
 
-
-void MoveToMenu(int _menu)
-{
-  beenClick = false;
-  beenHold = false;
-  deltaEncoder = 0;
-  menu = _menu;
-  page = 0;
-  allowControl = true;
-  ManageUI();
-}
-
 void DisplayList(String items[], short numOfItems, short pageOffset)
 {
   if(deltaEncoder != 0)
@@ -475,24 +479,4 @@ void DisplayList(String items[], short numOfItems, short pageOffset)
     AddToLCD(0,1, "\1" + items[page - pageOffset]);
   }
 
-}
-
-void isr ()  
-{
-  static unsigned long lastInterruptTime = 0;
-  unsigned long interruptTime = millis();
-  
-  // If interrupts come faster than 5ms, assume it's a bounce and ignore
-  if (interruptTime - lastInterruptTime > 5) {
-    if (digitalRead(outputB) == LOW)
-    {
-      deltaEncoder-- ; 
-    }
-    else {
-      deltaEncoder++ ; 
-    }
-  }
-  lastInteraction = millis();
-  // Keep track of when we were here last (no more than every 5ms)
-  lastInterruptTime = interruptTime;
 }

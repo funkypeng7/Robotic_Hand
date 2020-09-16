@@ -82,9 +82,14 @@ void InitLCD()
 // Change only characters that differ from the current display
 void DisplayLCD()
 {
+  
   if(beenHold)
   {
     LCDData[0][15] = '\2';
+    if(beenReturnHold)
+    {
+      LCDData[1][15] ='\2';
+    }
   }
   //Compare each character you want to display with its already displayed counterpart
   if(LCDData != prevLCDData)
