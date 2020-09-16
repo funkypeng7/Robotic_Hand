@@ -124,6 +124,12 @@ void Return()
   }
 }
 
+String getString(const char *const input[], byte index)
+{
+  strcpy_P(buffer, (char *)pgm_read_word(&(input[index])));
+  return(buffer);
+}
+
 void isr ()  
 {
   static unsigned long lastInterruptTime = 0;

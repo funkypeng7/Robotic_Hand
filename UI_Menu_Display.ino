@@ -2,10 +2,11 @@ unsigned long holdStartTime;
 bool hasBeenDown;
 
 //Menu 0
+char buffer[16];
+
 #define MainMenuReturnTime 1500
 #define ReturnTime 500
-const String menus[] = {"Demo", "Connection Type", "Manual Control", "Settings"};
-const byte numOfMenus = 4;
+
 //Menu 2 - Connection
 const String typesOfConnections[] = {"Serial", "Bluetooth", "Controller"};
 const byte numOfConnections = 3;
@@ -33,17 +34,18 @@ void ManageUI()
   {
     // Main menu
     case 0:
+    {
       if(beenClick)
       {
         MoveToMenu(page + 1);
         return;
       }
       DisplayList(menus, numOfMenus, 0);
-      Serial.println((String)LCDData[0]);
       break;
-
+    }
     // Info Screen - to be replaced by demo
     case 1:
+    {
       ClearLCD();
       AddToLCD(0,0, F("Will be Demo"));
 //      if(beenClick)
@@ -62,9 +64,10 @@ void ManageUI()
 //      else if(connectionType == 2)
 //        AddToLCD(15,1, "C");
       break;
-
+    }
     // Connection Menu
     case 2:
+    {
       if(beenClick && page < numOfConnections)
       {
         connectionType = page;
@@ -80,9 +83,10 @@ void ManageUI()
         AddToLCD(0,1, typesOfConnections[connectionType]);
       }
       break;
-
+    }
     // Manual Control
     case 3:
+    {
       if((beenClick) && page < 5)
       {
         page += 6;
@@ -138,18 +142,20 @@ void ManageUI()
 //        AddToLCD(0,0, "Finger " + (String)(page - 4) + ": " + (String)(fingers[page - 5].currentPosition));
 //      }
       break;
-
+    }
     // Settings
     case 4:
+    {
       if(beenClick)
       {
         MoveToMenu(page + 5);
       }
       DisplayList(settings, numOfSettings, 0);
       break;
-
+    }
     // Configuration Menu
     case 5:
+    {
       if(beenClick && page < numOfCOptions)
       {
         if(page == 4)
@@ -200,9 +206,10 @@ void ManageUI()
         }
       }
       break;
-
+    }
     // Debug
     case 6:
+    {
       if(beenClick)
       {
         Return();
@@ -220,9 +227,10 @@ void ManageUI()
       AddToLCD(0,0, GetData(page));
       AddToLCD(0,1, GetData(page + 1));
       break;
-
+    }
     // Factory Reset
     case 7:
+    {
       if(beenClick)
       {
         if(page == 0)
@@ -245,7 +253,7 @@ void ManageUI()
         DisplayList(confirmMenu, numOfConfirm, 0);
       }
       break;
-      
+    }
     default:
       MoveToMenu(0);
       break;
@@ -479,4 +487,36 @@ void DisplayList(String items[], short numOfItems, short pageOffset)
     AddToLCD(0,1, "\1" + items[page - pageOffset]);
   }
 
+}
+
+void DisplayList(const char *const items[], short numOfItems, short pageOffset)
+{
+  if(deltaEncoder != 0)
+  {
+    page += deltaEncoder;
+    if(page - pageOffset < 0)
+    {
+      page = pageOffset;
+      Serial.println("page - pageOffset < 0");
+    }
+    if(page - pageOffset >= numOfItems)
+    {
+      page = numOfItems - 1 + pageOffset;
+      Serial.println("page - pageOffset >= numOfItems");
+    }
+      
+    deltaEncoder = 0;
+  }
+  ClearLCD();
+  AddToLCD(0,0, "\1" + getString(items, page - pageOffset));
+  if(page - pageOffset + 1 < numOfItems)
+  {
+    AddToLCD(0,1," " + getString(items, page - pageOffset + 1));
+  } 
+  if(page - pageOffset + 1 == numOfItems)
+  {
+    ClearLCD();
+    AddToLCD(0,0, " " + getString(items, page - pageOffset - 1));
+    AddToLCD(0,1, "\1" + getString(items, page - pageOffset));
+  }
 }
