@@ -1,0 +1,22 @@
+{
+  "name": "ui_template_progmem",
+  "version": "1.0.0",
+  "description": "",
+  "main": "UI_Template.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Brownie7/Robotic_Hand.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Brownie7/Robotic_Hand/issues"
+  },
+  "homepage": "https://github.com/Brownie7/Robotic_Hand#readme",
+  "dependencies": {
+    "console-read-write": "^0.1.1"
+  }
+}

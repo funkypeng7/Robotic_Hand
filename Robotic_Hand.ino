@@ -57,8 +57,8 @@ char prevLCDData[2][16] = {"                ", "                "};
 // Servo Driver
 Adafruit_PWMServoDriver servos = Adafruit_PWMServoDriver();
 // Pulse Info
-int servoPulse[5] = {0,0,0,0,0};
-int actualServoPulse[5] = {0,0,0,0,0};
+short servoPulse[5] = {0,0,0,0,0};
+short actualServoPulse[5] = {0,0,0,0,0};
 
 
 void setup() {

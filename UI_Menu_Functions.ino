@@ -130,6 +130,20 @@ String getString(const char *const input[], byte index)
   return(buffer);
 }
 
+void replaceStringBuffer(const char *const input[], byte size)
+{
+  dataInBuffer = input;
+  for(byte i = 0; i < sizeOfStringBuffer; i++)
+  {
+    stringBuffer[i] = "";
+  }
+  for(byte i = 0; i < size; i++)
+  {
+    strcpy_P(buffer, (char *)pgm_read_word(&(input[index])));
+    stringBuffer[i] = buffer;
+  }
+}
+
 void isr ()  
 {
   static unsigned long lastInterruptTime = 0;

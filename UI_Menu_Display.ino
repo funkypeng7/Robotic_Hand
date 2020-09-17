@@ -1,32 +1,15 @@
 unsigned long holdStartTime;
 bool hasBeenDown;
 
-//Menu 0
-char buffer[16];
-
 #define MainMenuReturnTime 1500
 #define ReturnTime 500
+//Menu 3
+byte selectedFinger;
 
-//Menu 2 - Connection
-const String typesOfConnections[] = {"Serial", "Bluetooth", "Controller"};
-const byte numOfConnections = 3;
-//Menu 3 - Manual Control
-const String fingerList[] = {"Finger 1", "Finger 2", "Finger 3", "Finger 4", "Finger 5"};
-//const String fingerListAndAll[] = {"Finger 1", "Finger 2", "Finger 3", "Finger 4", "Finger 5", "All"};
-int selectedFinger;
-//Menu 4 - settings
-const String settings[] = {"Configuration", "Debug"};
-const byte numOfSettings = 2;
-//Menu 5 - callibration
-const String callibrationOptions[] = {"Direction", "Range", "Pulses", "Hold Position",  "Save Settings", "Factory Reset"};
-const byte numOfCOptions = 6;
+//Menu 5
 const short timeAtMinPos = 500;
 int setting;
 bool setMax, hasBeen, beenChange;
-//Menu 6 - Debug
-//Menu 7
-const String confirmMenu[] = {"Back", "I Want To Reset"};
-byte numOfConfirm = 2;
 
 void ManageUI()
 {
@@ -80,7 +63,7 @@ void ManageUI()
       {
         ClearLCD();
         AddToLCD(0,0, F("Connected To:"));
-        AddToLCD(0,1, typesOfConnections[connectionType]);
+        AddToLCD(0,1, getString(typesOfConnections, connectionType));
       }
       break;
     }
@@ -116,31 +99,6 @@ void ManageUI()
         ClearLCD();
         AddToLCD(0,0, "Finger " + (String)(page - 4) + ": " + (String)(fingers[page - 5].currentPosition));
       }
-//      else
-//      {
-//        if(beenClick)
-//        {
-//          Return();
-//          return;
-//        }
-//        if(deltaEncoder != 0)
-//        {
-//          int newPosition = allFingers.currentPosition;
-//          newPosition += deltaEncoder * 3 - 2 * deltaEncoder/abs(deltaEncoder);
-//          if(newPosition < allFingers.minValue)
-//            newPosition = allFingers.minValue;
-//          if(newPosition > allFingers.maxValue)
-//            newPosition = allFingers.maxValue;
-//
-//          for(int i = 1; i < 5; i++)
-//          {
-//            MoveFinger(map(newPosition, allFingers.minValue, allFingers.maxValue, fingers[i].minValue, fingers[i].maxValue), i);
-//          }
-//          
-//        }
-//        ClearLCD();
-//        AddToLCD(0,0, "Finger " + (String)(page - 4) + ": " + (String)(fingers[page - 5].currentPosition));
-//      }
       break;
     }
     // Settings
@@ -456,53 +414,23 @@ void AdjustSingleSetting(short finger, short value, short absMax, byte scrollMul
   }
 }
 
-void DisplayList(String items[], short numOfItems, short pageOffset)
-{
-  if(deltaEncoder != 0)
-  {
-    page += deltaEncoder;
-    if(page - pageOffset < 0)
-    {
-      page = pageOffset;
-      Serial.println("page - pageOffset < 0");
-    }
-    if(page - pageOffset >= numOfItems)
-    {
-      page = numOfItems - 1 + pageOffset;
-      Serial.println("page - pageOffset >= numOfItems");
-    }
-      
-    deltaEncoder = 0;
-  }
-  ClearLCD();
-  AddToLCD(0,0, "\1" + items[page - pageOffset]);
-  if(page - pageOffset + 1 < numOfItems)
-  {
-    AddToLCD(0,1," " + items[page - pageOffset + 1]);
-  } 
-  if(page - pageOffset + 1 == numOfItems)
-  {
-    ClearLCD();
-    AddToLCD(0,0, " " + items[page - pageOffset - 1]);
-    AddToLCD(0,1, "\1" + items[page - pageOffset]);
-  }
-
-}
-
 void DisplayList(const char *const items[], short numOfItems, short pageOffset)
 {
+  if(dataInBuffer != items)
+  {
+    Serial.println(F("Refresh string buffer"));
+    replaceStringBuffer(items, numOfItems);
+  }
   if(deltaEncoder != 0)
   {
     page += deltaEncoder;
     if(page - pageOffset < 0)
     {
       page = pageOffset;
-      Serial.println("page - pageOffset < 0");
     }
     if(page - pageOffset >= numOfItems)
     {
       page = numOfItems - 1 + pageOffset;
-      Serial.println("page - pageOffset >= numOfItems");
     }
       
     deltaEncoder = 0;
