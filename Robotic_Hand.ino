@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <Adafruit_PWMServoDriver.h>
-#include <AltSoftSerial.h>
+#include <SoftwareSerial.h>
 #include <EEPROM.h>
 #include <avr/pgmspace.h>
 
@@ -17,7 +17,7 @@ volatile unsigned long lastInteraction;
 bool lockArduino;
 
 //Bluetooth Information
-AltSoftSerial BTSerial; 
+SoftwareSerial BTSerial(8,9); 
 
 //Connection
 int connectionType = 0;
@@ -62,6 +62,11 @@ short actualServoPulse[5] = {0,0,0,0,0};
 
 
 void setup() {
+
+  
+  
+  InitTimer1();
+ 
   
   // Set Initial Menu Location
   connectionType = 0;
@@ -81,6 +86,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Robotic Hand Debug:");
   BTSerial.begin(9600);
+//  SetBLEName("Robo Hand");
   
   //Set servos to default
   for(int i = 0; i < 5; i++)
@@ -95,12 +101,7 @@ void setup() {
 }
 
 void loop() {
-  if(menu == 0 && page == 0)
-  {
-    Serial.println("Menu is good");
-  }
   // put your main code here, to run repeatedly:
-//  AddToLCD(0,0, "1: " + (String)fingers[0].minValue + " 2: " + (String)fingers[1].minValue + "        ");
   HandleSerial();
   CheckServoPulse();
   CheckServosHoldPosition();

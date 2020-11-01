@@ -64,6 +64,7 @@ void MoveToMenu(byte _menu)
   page = 0;
   connectionType = 4;
   allowControl = true;
+  currentPosition = 0;
   ManageUI();
 }
 
@@ -122,6 +123,7 @@ void Return()
       MoveToMenu(0);
       break;
   }
+  
 }
 
 String getString(const char *const input[], byte index)
@@ -132,14 +134,14 @@ String getString(const char *const input[], byte index)
 
 void replaceStringBuffer(const char *const input[], byte size)
 {
-  dataInBuffer = input;
+  dataInBuffer = getString(input, size - 1);
   for(byte i = 0; i < sizeOfStringBuffer; i++)
   {
     stringBuffer[i] = "";
   }
   for(byte i = 0; i < size; i++)
   {
-    strcpy_P(buffer, (char *)pgm_read_word(&(input[index])));
+    strcpy_P(buffer, (char *)pgm_read_word(&(input[i])));
     stringBuffer[i] = buffer;
   }
 }

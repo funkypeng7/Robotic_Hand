@@ -1,7 +1,7 @@
 char buffer[16];
 #define sizeOfStringBuffer 7
 String stringBuffer[sizeOfStringBuffer];
-char dataInBuffer;
+String dataInBuffer;
 
 // Menu 0 - Main Menu
 // {"Demo", "Connection Type", "Manual Control", "Settings"}
@@ -12,6 +12,14 @@ const char S_Settings[] PROGMEM = "Settings";
 
 const char *const menus[] PROGMEM = {S_Demo, S_Connection_Type, S_Manual_Control, S_Settings};
 const byte numOfMenus = 4;
+
+// Menu 1 - Demo
+// {"Gestures", "Basic Movement"}
+const char S_Gestures[] PROGMEM = "Gestures";
+const char S_Basic_Movement[] PROGMEM = "Basic Movement";
+
+const char *const demos[] PROGMEM = {S_Gestures, S_Basic_Movement};
+const byte numOfDemos = 2;
 
 // Menu 2 - Connection Type
 // {"Serial", "Bluetooth", "Controller"}

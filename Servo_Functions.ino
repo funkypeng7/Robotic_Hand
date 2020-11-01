@@ -16,8 +16,6 @@ void MoveFinger(short value, byte finger)
   else if(value > fingers[finger].maxValue)
     value = fingers[finger].maxValue;
 
-  
-
   if(value < fingers[finger].holdPosition)
   {
     if(!BIT_CHECK(fingersBelowMin, finger))
@@ -77,9 +75,11 @@ void MoveFinger(short value, byte finger, bool noHoldPos)
 
 int PulseWidth(int value, int finger)
 {
-  int pulse_wide, analog_value;
-  pulse_wide = map(value, 0, 244, fingers[finger].minPulse, fingers[finger].maxPulse);
-  analog_value = int(float(pulse_wide) / 1000000 * 50 * 4096);
+  int pulse_actual, analog_value;
+  // Get the wanted Pulse length (in millisecconds)
+  pulse_actual = map(value, 0, 244, fingers[finger].minPulse, fingers[finger].maxPulse);
+  // Convert to a duty cycle
+  analog_value = int(float(pulse_actual) / 1000000 * 50 * 4096);
   return analog_value;
 }
 

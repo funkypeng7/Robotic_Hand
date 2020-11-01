@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name Hand-Mesurement-Device-rescue)(type Legacy)(uri "${KIPRJMOD}/Hand Mesurement Device-rescue.lib")(options "")(descr ""))
+)

@@ -7,6 +7,7 @@ void HandleSerial()
   {
       while(BTSerial.available() > 0)
       {
+        Serial.println("Got BT");
         AddToBuffer(BTSerial.read());
       }
   }
@@ -58,6 +59,11 @@ void AddToBuffer(byte incomingByte)
   }
   
   
+}
+
+void SetBLEName(String name)
+{
+  BTSerial.print("AT+NAME" + name);
 }
 
 bool DataMatching()

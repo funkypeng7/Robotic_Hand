@@ -6,6 +6,7 @@ bool hasBeenDown;
 //Menu 3
 byte selectedFinger;
 
+
 //Menu 5
 const short timeAtMinPos = 500;
 int setting;
@@ -26,26 +27,27 @@ void ManageUI()
       DisplayList(menus, numOfMenus, 0);
       break;
     }
-    // Info Screen - to be replaced by demo
+    // Demo
     case 1:
     {
-      ClearLCD();
-      AddToLCD(0,0, F("Will be Demo"));
-//      if(beenClick)
+//      if(page < 2)
 //      {
-//        MoveToMenu(0);
-//        return;
+//        if(beenClick)
+//        {
+//          currentPosition = 0;
+//          whichDemo = page;
+//          page += 2;
+//        }
+//        else
+//        {
+//          DisplayList(demos, numOfDemos, 0);
+//        }
 //      }
-//      ClearLCD();
-//      AddToLCD(0,0, "1:" + (String)fingers[0].currentPosition + " 2:" + (String)fingers[1].currentPosition + " 3:" + (String)fingers[2].currentPosition);
-//      AddToLCD(0,1, "4:" + (String)fingers[3].currentPosition + " 5:" + (String)fingers[4].currentPosition);
-//      
-//      if(connectionType == 0)
-//        AddToLCD(15,1, "S");
-//      else if(connectionType == 1)
-//        AddToLCD(15,1, "B");
-//      else if(connectionType == 2)
-//        AddToLCD(15,1, "C");
+//      else
+//      {
+//        Demo();
+//      }
+      Demo();
       break;
     }
     // Connection Menu
@@ -77,7 +79,7 @@ void ManageUI()
         allowControl = false;
       }
       if(page < 6)
-        DisplayList(fingerList, 6, 0);
+        DisplayList(fingerList, 5, 0);
 //        DisplayList(fingerListAndAll, 6, 0);
       else if(page < 11)
       {
@@ -107,6 +109,7 @@ void ManageUI()
       if(beenClick)
       {
         MoveToMenu(page + 5);
+        return;
       }
       DisplayList(settings, numOfSettings, 0);
       break;
@@ -278,7 +281,7 @@ void ChangeSetting(byte setting, byte finger) {
         }
         AdjustSetting(finger, fingers[finger].minValue, fingers[finger].maxValue, 255, setMax, 10, 1, " - Range", setMax ? 1: 2); 
       break;
-   //Pulse
+   // Pulse
    case 2:
       if(!hasBeen)
       {
@@ -296,13 +299,10 @@ void ChangeSetting(byte setting, byte finger) {
       }
       AdjustSetting(finger, fingers[finger].minPulse, fingers[finger].maxPulse, 10000, setMax, 100, 5, " - Pulse", setMax ? 3: 4); 
       break;
-  //Hold Position
+  // Hold Position
   case 3:
-      if(!hasBeen)
-      {
-        MoveFinger(0, finger);
-      }
       AdjustSingleSetting(finger, fingers[finger].holdPosition, 255, 1, " - Hold", 5, false);
+      MoveFinger(fingers[finger].holdPosition, finger, true);
       break;
   }
 }
@@ -416,11 +416,13 @@ void AdjustSingleSetting(short finger, short value, short absMax, byte scrollMul
 
 void DisplayList(const char *const items[], short numOfItems, short pageOffset)
 {
-  if(dataInBuffer != items)
+  // If the string is not loaded from flash load it
+  if(dataInBuffer != getString(items, numOfItems - 1))
   {
-    Serial.println(F("Refresh string buffer"));
     replaceStringBuffer(items, numOfItems);
   }
+
+  // If been turn on delta encoder change scroll through list
   if(deltaEncoder != 0)
   {
     page += deltaEncoder;
@@ -435,16 +437,23 @@ void DisplayList(const char *const items[], short numOfItems, short pageOffset)
       
     deltaEncoder = 0;
   }
+
+  // Add the selected list item with an arrow
   ClearLCD();
-  AddToLCD(0,0, "\1" + getString(items, page - pageOffset));
+  AddToLCD(0,0, "\1" + stringBuffer[page - pageOffset]);
+
+  // Add the next item in the list underneath
   if(page - pageOffset + 1 < numOfItems)
   {
-    AddToLCD(0,1," " + getString(items, page - pageOffset + 1));
+    AddToLCD(0,1," " + stringBuffer[page - pageOffset + 1]);
   } 
+
+  // If it is the last item in the list clear move it to the bottom with an arrow 
+  // and place the one before it at the top
   if(page - pageOffset + 1 == numOfItems)
   {
     ClearLCD();
-    AddToLCD(0,0, " " + getString(items, page - pageOffset - 1));
-    AddToLCD(0,1, "\1" + getString(items, page - pageOffset));
+    AddToLCD(0,0, " " + stringBuffer[page - pageOffset - 1]);
+    AddToLCD(0,1, "\1" + stringBuffer[page - pageOffset]);
   }
 }

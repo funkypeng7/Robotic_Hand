@@ -1,0 +1,14 @@
+﻿<Properties StartupConfiguration="{83A65D28-4B86-E589-369B-E6AD14700C72}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/SerialMonitor.cs">
+    <Files>
+      <File FileName="Assets/Scripts/SerialMonitor.cs" Line="91" Column="70" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="8fdf45ca-3af9-4e44-98af-49a89b4e3a4a" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
