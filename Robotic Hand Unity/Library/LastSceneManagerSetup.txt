@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/Scenes/Main Panel.unity
+- path: Assets/Scenes/Bluetooth Test.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0

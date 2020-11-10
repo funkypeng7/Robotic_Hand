@@ -4,7 +4,7 @@ const byte gesturesPositions[][5] =  {{255, 255, 255, 255, 255}, {255, 255, 255,
 const byte numOfPositions = 15;
 
 // Max time in millis is 4000          open  rock on    horns      shaaka     open        1    2    3    4    5   open
-unsigned short gesturesTimeToo[] = {0, 2500, 750, 2500, 750, 2500, 750, 2500, 1000, 500, 750, 750, 750, 750, 750, 100};
+unsigned short gesturesTimeToo[] = {0, 1000, 750, 1500, 750, 1500, 750, 1500, 750, 500, 1000, 1000, 1000, 1000, 1000, 500};
 volatile byte hold; 
 volatile short currentPosition = 0;
 

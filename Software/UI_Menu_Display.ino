@@ -30,23 +30,6 @@ void ManageUI()
     // Demo
     case 1:
     {
-//      if(page < 2)
-//      {
-//        if(beenClick)
-//        {
-//          currentPosition = 0;
-//          whichDemo = page;
-//          page += 2;
-//        }
-//        else
-//        {
-//          DisplayList(demos, numOfDemos, 0);
-//        }
-//      }
-//      else
-//      {
-//        Demo();
-//      }
       Demo();
       break;
     }
